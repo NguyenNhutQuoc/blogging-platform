@@ -1,0 +1,12 @@
+{
+  "name": "@repo/web",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "dev": "echo \"[web] Not yet scaffolded — run Phase 2 first\"",
+    "build": "echo \"[web] Not yet scaffolded\"",
+    "start": "echo \"[web] Not yet scaffolded\"",
+    "lint": "echo \"[web] skip\"",
+    "typecheck": "echo \"[web] skip\""
+  }
+}

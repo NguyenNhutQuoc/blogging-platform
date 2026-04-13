@@ -1,0 +1,21 @@
+{
+  "name": "@repo/api-client",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./posts": "./src/resources/posts.ts",
+    "./auth": "./src/resources/auth.ts",
+    "./comments": "./src/resources/comments.ts"
+  },
+  "dependencies": {
+    "@repo/shared": "workspace:*",
+    "@repo/validators": "workspace:*",
+    "zod": "^3.25.0"
+  },
+  "devDependencies": {
+    "@repo/config-typescript": "workspace:*",
+    "typescript": "^5.8.3"
+  }
+}

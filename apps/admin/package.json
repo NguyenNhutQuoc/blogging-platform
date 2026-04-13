@@ -1,0 +1,12 @@
+{
+  "name": "@repo/admin",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "dev": "echo \"[admin] Not yet scaffolded — run Phase 2 first\"",
+    "build": "echo \"[admin] Not yet scaffolded\"",
+    "start": "echo \"[admin] Not yet scaffolded\"",
+    "lint": "echo \"[admin] skip\"",
+    "typecheck": "echo \"[admin] skip\""
+  }
+}

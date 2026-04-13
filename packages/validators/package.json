@@ -1,0 +1,22 @@
+{
+  "name": "@repo/validators",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./post": "./src/post.ts",
+    "./auth": "./src/auth.ts",
+    "./comment": "./src/comment.ts",
+    "./media": "./src/media.ts",
+    "./pagination": "./src/pagination.ts"
+  },
+  "dependencies": {
+    "zod": "^3.25.0",
+    "@repo/shared": "workspace:*"
+  },
+  "devDependencies": {
+    "@repo/config-typescript": "workspace:*",
+    "typescript": "^5.8.3"
+  }
+}

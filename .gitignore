@@ -1,0 +1,28 @@
+node_modules/
+.next/
+dist/
+.turbo/
+*.env
+!.env.example
+*.log
+coverage/
+.DS_Store
+
+# Claude Code
+.claude/
+
+# pnpm
+pnpm-debug.log*
+
+# Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+Thumbs.db
+
+# Test artifacts
+test-results/
+playwright-report/
