@@ -36,9 +36,24 @@ interface CommentNotificationEmailProps {
 }
 
 export type EmailJobData =
-  | { to: string; subject: string; template: "welcome"; props: WelcomeEmailProps }
-  | { to: string; subject: string; template: "password-reset"; props: PasswordResetEmailProps }
-  | { to: string; subject: string; template: "comment-notification"; props: CommentNotificationEmailProps };
+  | {
+      to: string;
+      subject: string;
+      template: "welcome";
+      props: WelcomeEmailProps;
+    }
+  | {
+      to: string;
+      subject: string;
+      template: "password-reset";
+      props: PasswordResetEmailProps;
+    }
+  | {
+      to: string;
+      subject: string;
+      template: "comment-notification";
+      props: CommentNotificationEmailProps;
+    };
 
 // ─── Template renderer ────────────────────────────────────────────────────────
 
@@ -46,14 +61,18 @@ export type EmailJobData =
  * Builds the React Email element for each template type and renders it
  * to HTML + plain-text strings via @react-email/components.
  */
-async function buildEmail(data: EmailJobData): Promise<{ html: string; text: string }> {
+async function buildEmail(
+  data: EmailJobData,
+): Promise<{ html: string; text: string }> {
   switch (data.template) {
     case "welcome":
       return renderEmail(React.createElement(WelcomeEmail, data.props));
     case "password-reset":
       return renderEmail(React.createElement(PasswordResetEmail, data.props));
     case "comment-notification":
-      return renderEmail(React.createElement(CommentNotificationEmail, data.props));
+      return renderEmail(
+        React.createElement(CommentNotificationEmail, data.props),
+      );
   }
 }
 
@@ -98,7 +117,7 @@ export const emailWorker = new Worker<EmailJobData>(
 
     console.log(`[EmailWorker] Delivered "${subject}" to ${to}`);
   },
-  { connection: redis, concurrency: 5 }
+  { connection: redis, concurrency: 5 },
 );
 
 emailWorker.on("failed", (job, err) => {
