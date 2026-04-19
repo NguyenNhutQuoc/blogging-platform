@@ -48,6 +48,16 @@ export const env = {
 
   ANALYTICS_SALT: optionalEnv("ANALYTICS_SALT", "dev-salt"),
 
+  /**
+   * Comma-separated list of allowed CORS origins.
+   * In production, set this to your exact frontend/admin URLs.
+   * Default covers standard local dev ports.
+   */
+  CORS_ORIGINS: optionalEnv(
+    "CORS_ORIGINS",
+    "http://localhost:3000,http://localhost:3002"
+  ),
+
   get isDev() {
     return this.NODE_ENV === "development";
   },

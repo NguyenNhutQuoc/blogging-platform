@@ -8,16 +8,29 @@ import { sql } from "drizzle-orm";
 
 export interface SearchIndexJobData {
   postId: string;
-  action: "index" | "delete";
+  /**
+   * Only "delete" is dispatched by the posts service.
+   * Indexing (insert/update) is handled automatically by the PostgreSQL
+   * tsvector trigger defined in migrations/0001_fts_gin_index.sql — no need
+   * to re-run the same SQL from a worker on every save.
+   *
+   * Phase 5+: add "index" back here to push to Meilisearch instead of the trigger.
+   */
+  action: "delete";
 }
 
 /**
- * Search index worker — syncs post content to the PostgreSQL tsvector column.
- * Using a job (not a DB trigger) gives us control over when indexing happens
- * and lets us debounce rapid edits during drafting.
+ * Search index worker — handles soft-delete cleanup for the tsvector column.
  *
- * The tsvector combines title (weight A), excerpt (weight B), and content (weight C).
- * Phase 5+: swap this worker to push to Meilisearch instead.
+ * Indexing (INSERT/UPDATE) is handled automatically by the PostgreSQL trigger
+ * `posts_search_vector_update` — we do NOT dispatch index jobs from the posts
+ * service to avoid running duplicate SQL on every save.
+ *
+ * This worker only clears the search_vector when a post is soft-deleted so that
+ * deleted posts are immediately removed from search results without waiting for
+ * the trigger (which only fires on UPDATE of tracked columns).
+ *
+ * Phase 5+: extend to push to Meilisearch — swap trigger for this worker.
  */
 export const searchIndexWorker = new Worker<SearchIndexJobData>(
   QUEUE_NAMES.SEARCH_INDEX,
@@ -29,21 +42,9 @@ export const searchIndexWorker = new Worker<SearchIndexJobData>(
         .update(posts)
         .set({ searchVector: sql`NULL` })
         .where(eq(posts.id, postId));
+      console.log(`[SearchIndexWorker] Cleared search vector for deleted post ${postId}`);
       return;
     }
-
-    // Build tsvector from title (A), excerpt (B), and stripped HTML content (C)
-    await db.execute(sql`
-      UPDATE posts
-      SET search_vector = (
-        setweight(to_tsvector('simple', coalesce(title, '')), 'A') ||
-        setweight(to_tsvector('simple', coalesce(excerpt, '')), 'B') ||
-        setweight(to_tsvector('simple', coalesce(regexp_replace(content, '<[^>]+>', ' ', 'g'), '')), 'C')
-      )
-      WHERE id = ${postId}
-    `);
-
-    console.log(`[SearchIndexWorker] Indexed post ${postId}`);
   },
   { connection: redis, concurrency: 3 }
 );
