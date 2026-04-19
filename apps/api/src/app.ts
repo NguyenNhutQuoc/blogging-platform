@@ -6,6 +6,8 @@ import { errorHandler } from "./middleware/error-handler.js";
 import { healthRouter } from "./routes/v1/health.js";
 import { authRouter } from "./routes/v1/auth.js";
 import { postsRouter } from "./routes/v1/posts.js";
+import { categoriesRouter } from "./routes/v1/categories.js";
+import { tagsRouter } from "./routes/v1/tags.js";
 
 /**
  * Main Hono application.
@@ -48,6 +50,8 @@ app.get(
 app.route("/api/v1", healthRouter);
 app.route("/api/v1/auth", authRouter);
 app.route("/api/v1", postsRouter);
+app.route("/api/v1", categoriesRouter);
+app.route("/api/v1", tagsRouter);
 
 // ── 404 fallback ───────────────────────────────────────────────────────────
 app.notFound((c) => {
