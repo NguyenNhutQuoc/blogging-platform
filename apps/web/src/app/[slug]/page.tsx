@@ -16,8 +16,40 @@ export default async function PostPage({ params }: PageProps) {
 
   if (!post) notFound();
 
+  const APP_URL = process.env.APP_URL ?? "http://localhost:3000";
+
+  /** JSON-LD structured data — helps Google display rich results */
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
+    headline: post.title,
+    description: post.excerpt ?? undefined,
+    image: post.ogImageUrl ?? post.coverImageUrl ?? undefined,
+    datePublished: post.publishedAt ?? undefined,
+    dateModified: post.publishedAt ?? undefined,
+    author: {
+      "@type": "Person",
+      name: post.author.name,
+    },
+    publisher: {
+      "@type": "Organization",
+      name: "Blog Platform",
+      url: APP_URL,
+    },
+    url: `${APP_URL}/${slug}`,
+    mainEntityOfPage: {
+      "@type": "WebPage",
+      "@id": `${APP_URL}/${slug}`,
+    },
+  };
+
   return (
     <article className="max-w-3xl mx-auto">
+      {/* JSON-LD structured data */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       {/* Cover image */}
       {post.coverImageUrl && (
         <div className="mb-8 rounded-xl overflow-hidden aspect-video">

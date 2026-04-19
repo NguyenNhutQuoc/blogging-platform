@@ -2,13 +2,21 @@ import type { Metadata } from "next";
 import { Toaster } from "@repo/ui";
 import "./globals.css";
 
+const APP_URL = process.env.APP_URL ?? "http://localhost:3000";
+
 export const metadata: Metadata = {
   title: {
     default: "Blog Platform",
     template: "%s | Blog Platform",
   },
   description: "A professional multi-author blogging platform.",
-  metadataBase: new URL(process.env.APP_URL ?? "http://localhost:3000"),
+  metadataBase: new URL(APP_URL),
+  alternates: {
+    // RSS autodiscovery — browsers and feed readers pick this up
+    types: {
+      "application/rss+xml": [{ url: `${APP_URL}/rss.xml`, title: "Blog Platform RSS Feed" }],
+    },
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
