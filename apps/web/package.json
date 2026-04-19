@@ -21,6 +21,7 @@
   },
   "devDependencies": {
     "@repo/config-typescript": "workspace:*",
+    "@tailwindcss/postcss": "^4.2.2",
     "@types/node": "^22.15.3",
     "@types/react": "^18.3.12",
     "@types/react-dom": "^18.3.1",
