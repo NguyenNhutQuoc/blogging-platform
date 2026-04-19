@@ -8,6 +8,7 @@ import { authRouter } from "./routes/v1/auth.js";
 import { postsRouter } from "./routes/v1/posts.js";
 import { categoriesRouter } from "./routes/v1/categories.js";
 import { tagsRouter } from "./routes/v1/tags.js";
+import { mediaRouter } from "./routes/v1/media.js";
 
 /**
  * Main Hono application.
@@ -52,6 +53,7 @@ app.route("/api/v1/auth", authRouter);
 app.route("/api/v1", postsRouter);
 app.route("/api/v1", categoriesRouter);
 app.route("/api/v1", tagsRouter);
+app.route("/api/v1", mediaRouter);
 
 // ── 404 fallback ───────────────────────────────────────────────────────────
 app.notFound((c) => {

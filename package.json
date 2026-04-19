@@ -16,7 +16,7 @@
     "format": "prettier --write \"**/*.{ts,tsx,md,json}\" --ignore-path .gitignore"
   },
   "pnpm": {
-    "onlyBuiltDependencies": ["esbuild", "msgpackr-extract"]
+    "onlyBuiltDependencies": ["esbuild", "msgpackr-extract", "sharp"]
   },
   "devDependencies": {
     "turbo": "latest",
