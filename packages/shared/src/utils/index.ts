@@ -1,3 +1,3 @@
-export * from "./slug.js";
-export * from "./reading-time.js";
-export * from "./uuid.js";
+export * from "./slug";
+export * from "./reading-time";
+export * from "./uuid";

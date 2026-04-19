@@ -1,16 +1,16 @@
-export { ApiClient } from "./client.js";
-export type { ApiClientConfig } from "./client.js";
-export { PostsResource } from "./resources/posts.js";
-export { AuthResource } from "./resources/auth.js";
-export { CommentsResource } from "./resources/comments.js";
-export type { PostDetail, ListPostsParams } from "./resources/posts.js";
-export type { LoginResponse } from "./resources/auth.js";
-export type { Comment } from "./resources/comments.js";
+export { ApiClient } from "./client";
+export type { ApiClientConfig } from "./client";
+export { PostsResource } from "./resources/posts";
+export { AuthResource } from "./resources/auth";
+export { CommentsResource } from "./resources/comments";
+export type { PostDetail, ListPostsParams } from "./resources/posts";
+export type { LoginResponse } from "./resources/auth";
+export type { Comment } from "./resources/comments";
 
-import { ApiClient } from "./client.js";
-import { PostsResource } from "./resources/posts.js";
-import { AuthResource } from "./resources/auth.js";
-import { CommentsResource } from "./resources/comments.js";
+import { ApiClient } from "./client";
+import { PostsResource } from "./resources/posts";
+import { AuthResource } from "./resources/auth";
+import { CommentsResource } from "./resources/comments";
 
 /**
  * Factory function to create a configured API client instance.
