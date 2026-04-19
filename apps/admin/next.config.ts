@@ -6,6 +6,10 @@ import type { NextConfig } from "next";
  * - No middleware.ts — proxy.ts handles API forwarding per CLAUDE.md spec
  */
 const nextConfig: NextConfig = {
+  experimental: {
+    // Required to use the "use cache" directive (Next.js 15.x)
+    useCache: true,
+  },
   images: {
     remotePatterns: [
       {

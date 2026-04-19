@@ -1,3 +1,5 @@
+@import "tailwindcss";
+@import "tailwindcss-animate";
 @import "@repo/ui/globals.css";
 
 /* ── Web-specific overrides ─────────────────────────────────────────────── */

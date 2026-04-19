@@ -2,11 +2,29 @@
   "name": "@repo/web",
   "version": "0.0.1",
   "private": true,
+  "type": "module",
   "scripts": {
-    "dev": "echo \"[web] Not yet scaffolded — run Phase 2 first\"",
-    "build": "echo \"[web] Not yet scaffolded\"",
-    "start": "echo \"[web] Not yet scaffolded\"",
-    "lint": "echo \"[web] skip\"",
-    "typecheck": "echo \"[web] skip\""
+    "dev": "next dev --turbopack --port 3000",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@repo/api-client": "workspace:*",
+    "@repo/shared": "workspace:*",
+    "@repo/ui": "workspace:*",
+    "next": "^15.3.1",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "tailwindcss-animate": "^1.0.7"
+  },
+  "devDependencies": {
+    "@repo/config-typescript": "workspace:*",
+    "@types/node": "^22.15.3",
+    "@types/react": "^18.3.12",
+    "@types/react-dom": "^18.3.1",
+    "tailwindcss": "^4.1.6",
+    "typescript": "^5.8.3"
   }
 }

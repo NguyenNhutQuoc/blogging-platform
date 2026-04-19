@@ -7,6 +7,10 @@ import type { NextConfig } from "next";
  * - `use cache` directive is enabled in Next.js 15+ by default.
  */
 const nextConfig: NextConfig = {
+  experimental: {
+    // Required to use the "use cache" directive (Next.js 15.x)
+    useCache: true,
+  },
   images: {
     remotePatterns: [
       {

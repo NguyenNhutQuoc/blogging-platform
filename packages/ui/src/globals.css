@@ -1,5 +1,9 @@
-@import "tailwindcss";
-@import "tailwindcss-animate";
+/*
+ * NOTE: @import "tailwindcss" is intentionally NOT here.
+ * Each consuming app (web, admin) imports tailwindcss in its own globals.css
+ * before importing this file. This keeps tailwindcss as an app-level dep,
+ * not a packages/ui dep, which is required for Turbopack CSS resolution.
+ */
 
 @layer base {
   :root {
