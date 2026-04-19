@@ -1,78 +1,38 @@
 import { Worker } from "bullmq";
-import * as React from "react";
 import { redis } from "../../lib/redis.js";
 import { env } from "../../lib/env.js";
 import { resend } from "../../lib/resend.js";
 import { QUEUE_NAMES } from "@repo/shared/constants";
 import {
-  WelcomeEmail,
-  PasswordResetEmail,
-  CommentNotificationEmail,
-  renderEmail,
+  renderWelcomeEmail,
+  renderPasswordResetEmail,
+  renderCommentNotificationEmail,
+  type WelcomeEmailProps,
+  type PasswordResetEmailProps,
+  type CommentNotificationEmailProps,
 } from "@repo/email-templates";
 
 // ─── Job payload types ────────────────────────────────────────────────────────
 
-interface WelcomeEmailProps {
-  name: string;
-  loginUrl: string;
-  siteName?: string;
-}
-
-interface PasswordResetEmailProps {
-  name: string;
-  resetUrl: string;
-  expiresInHours?: number;
-  siteName?: string;
-}
-
-interface CommentNotificationEmailProps {
-  authorName: string;
-  commenterName: string;
-  postTitle: string;
-  commentExcerpt: string;
-  commentUrl: string;
-  siteName?: string;
-}
-
 export type EmailJobData =
-  | {
-      to: string;
-      subject: string;
-      template: "welcome";
-      props: WelcomeEmailProps;
-    }
-  | {
-      to: string;
-      subject: string;
-      template: "password-reset";
-      props: PasswordResetEmailProps;
-    }
-  | {
-      to: string;
-      subject: string;
-      template: "comment-notification";
-      props: CommentNotificationEmailProps;
-    };
+  | { to: string; subject: string; template: "welcome"; props: WelcomeEmailProps }
+  | { to: string; subject: string; template: "password-reset"; props: PasswordResetEmailProps }
+  | { to: string; subject: string; template: "comment-notification"; props: CommentNotificationEmailProps };
 
 // ─── Template renderer ────────────────────────────────────────────────────────
 
 /**
- * Builds the React Email element for each template type and renders it
- * to HTML + plain-text strings via @react-email/components.
+ * Delegates rendering to @repo/email-templates, which owns React as a dep.
+ * The API worker never imports React directly — keeps the backend React-free.
  */
-async function buildEmail(
-  data: EmailJobData,
-): Promise<{ html: string; text: string }> {
+async function buildEmail(data: EmailJobData): Promise<{ html: string; text: string }> {
   switch (data.template) {
     case "welcome":
-      return renderEmail(React.createElement(WelcomeEmail, data.props));
+      return renderWelcomeEmail(data.props);
     case "password-reset":
-      return renderEmail(React.createElement(PasswordResetEmail, data.props));
+      return renderPasswordResetEmail(data.props);
     case "comment-notification":
-      return renderEmail(
-        React.createElement(CommentNotificationEmail, data.props),
-      );
+      return renderCommentNotificationEmail(data.props);
   }
 }
 
