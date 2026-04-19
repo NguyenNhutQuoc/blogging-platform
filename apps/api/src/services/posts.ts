@@ -3,6 +3,7 @@ import { slugify, estimateReadingTime, countWords } from "@repo/shared/utils";
 import { AppError } from "../lib/errors.js";
 import { searchIndexQueue } from "../jobs/queues.js";
 import * as postsRepo from "../repositories/posts.js";
+import * as revisionsRepo from "../repositories/revisions.js";
 import type { CreatePostInput, UpdatePostInput, ListPostsInput, SchedulePostInput } from "@repo/validators/post";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -155,6 +156,20 @@ export async function updatePost(id: string, actor: Actor, input: UpdatePostInpu
     // Preserve publishedAt when updating a published post without changing status
     ...(rest.status === "published" && !existing.publishedAt && { publishedAt: new Date() }),
   });
+
+  // Snapshot revision whenever content changes
+  if (content !== undefined && content !== existing.content) {
+    const revisionNumber = await revisionsRepo.getNextRevisionNumber(id);
+    await revisionsRepo.createRevision({
+      id: uuidv7(),
+      postId: id,
+      editorId: actor.id,
+      content: existing.content, // snapshot of the content BEFORE this update
+      contentJson: existing.contentJson,
+      revisionNumber,
+    });
+    await revisionsRepo.pruneRevisions(id);
+  }
 
   if (categoryIds !== undefined) {
     await postsRepo.setPostCategories(id, categoryIds);
