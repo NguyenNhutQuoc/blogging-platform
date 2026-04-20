@@ -30,7 +30,7 @@ Browser (web :3000)          Browser (admin :3002)
         └──────────┬───────────────────┘
                    │ HTTP
                    ▼
-           apps/api (Hono :3001)
+           apps/api (Hono :3003)
                    │
           ┌────────┴────────┐
           ▼                 ▼
@@ -51,20 +51,20 @@ Browser (web :3000)          Browser (admin :3002)
 
 ## Tech stack
 
-| Lớp | Công nghệ |
-|-----|-----------|
-| Monorepo | Turborepo + pnpm workspaces |
-| API | Hono.js + `@hono/zod-openapi` |
-| Frontend | Next.js 15 (Turbopack, App Router) |
-| Database | PostgreSQL 16 + Drizzle ORM |
-| Queue | Redis 7 + BullMQ |
-| Auth | Better Auth (session cookie + Bearer token) |
-| Storage | S3-compatible (MinIO local, Cloudflare R2 prod) |
-| Email | React Email + Resend |
-| Editor | Tiptap (ProseMirror) |
-| UI | shadcn/ui + Tailwind CSS v4 |
-| Validation | Zod (shared giữa API và frontend) |
-| Test | Vitest |
+| Lớp        | Công nghệ                                       |
+| ---------- | ----------------------------------------------- |
+| Monorepo   | Turborepo + pnpm workspaces                     |
+| API        | Hono.js + `@hono/zod-openapi`                   |
+| Frontend   | Next.js 15 (Turbopack, App Router)              |
+| Database   | PostgreSQL 16 + Drizzle ORM                     |
+| Queue      | Redis 7 + BullMQ                                |
+| Auth       | Better Auth (session cookie + Bearer token)     |
+| Storage    | S3-compatible (MinIO local, Cloudflare R2 prod) |
+| Email      | React Email + Resend                            |
+| Editor     | Tiptap (ProseMirror)                            |
+| UI         | shadcn/ui + Tailwind CSS v4                     |
+| Validation | Zod (shared giữa API và frontend)               |
+| Test       | Vitest                                          |
 
 ---
 
@@ -112,7 +112,7 @@ S3_REGION=us-east-1
 
 # App URLs
 APP_URL=http://localhost:3000
-API_URL=http://localhost:3001
+API_URL=http://localhost:3003
 ADMIN_URL=http://localhost:3002
 ```
 
@@ -125,6 +125,7 @@ docker compose up -d
 ```
 
 Lệnh này khởi động:
+
 - PostgreSQL 16 trên cổng `5432` (dev) và `5433` (test)
 - Redis 7 trên cổng `6379`
 - MinIO (S3) trên cổng `9000` (API) và `9001` (UI)
@@ -145,13 +146,13 @@ pnpm --filter database db:seed      # Seed dữ liệu mẫu
 pnpm dev
 ```
 
-| App | URL | Mô tả |
-|-----|-----|-------|
-| Public Blog | http://localhost:3000 | Frontend cho độc giả |
-| API | http://localhost:3001 | REST API |
-| API Docs | http://localhost:3001/api/docs | Swagger UI (Scalar) |
-| Admin | http://localhost:3002 | Dashboard quản trị |
-| MinIO UI | http://localhost:9001 | Quản lý file storage |
+| App         | URL                            | Mô tả                |
+| ----------- | ------------------------------ | -------------------- |
+| Public Blog | http://localhost:3000          | Frontend cho độc giả |
+| API         | http://localhost:3003          | REST API             |
+| API Docs    | http://localhost:3003/api/docs | Swagger UI (Scalar)  |
+| Admin       | http://localhost:3002          | Dashboard quản trị   |
+| MinIO UI    | http://localhost:9001          | Quản lý file storage |
 
 ### Chạy riêng từng app
 
@@ -256,11 +257,17 @@ import { postReactions } from "@repo/database";
 import { and, eq, count } from "drizzle-orm";
 
 /** Thêm hoặc cập nhật reaction của user cho một bài viết */
-export async function upsertReaction(postId: string, userId: string, type: string) {
+export async function upsertReaction(
+  postId: string,
+  userId: string,
+  type: string,
+) {
   // Xóa reaction cũ nếu tồn tại, rồi insert mới
   await db
     .delete(postReactions)
-    .where(and(eq(postReactions.postId, postId), eq(postReactions.userId, userId)));
+    .where(
+      and(eq(postReactions.postId, postId), eq(postReactions.userId, userId)),
+    );
 
   const [reaction] = await db
     .insert(postReactions)
@@ -297,13 +304,17 @@ import type { CreateReactionInput } from "@repo/validators";
 export async function addReaction(
   postId: string,
   userId: string,
-  input: CreateReactionInput
+  input: CreateReactionInput,
 ) {
   // Kiểm tra bài viết tồn tại và đã published
   const post = await postsRepo.findPostById(postId);
   if (!post) throw new AppError("POST_NOT_FOUND", "Post not found", 404);
   if (post.status !== "published") {
-    throw new AppError("POST_NOT_PUBLISHED", "Cannot react to unpublished post", 400);
+    throw new AppError(
+      "POST_NOT_PUBLISHED",
+      "Cannot react to unpublished post",
+      400,
+    );
   }
 
   return reactionsRepo.upsertReaction(postId, userId, input.type);
@@ -349,9 +360,7 @@ router.openapi(
           "application/json": {
             schema: z.object({
               success: z.literal(true),
-              data: z.array(
-                z.object({ type: z.string(), count: z.number() })
-              ),
+              data: z.array(z.object({ type: z.string(), count: z.number() })),
             }),
           },
         },
@@ -362,7 +371,7 @@ router.openapi(
     const { postId } = c.req.valid("param");
     const data = await reactionsService.getReactions(postId);
     return c.json({ success: true as const, data });
-  }
+  },
 );
 
 // --- POST /posts/:postId/reactions ---
@@ -371,10 +380,12 @@ router.openapi(
     method: "post",
     path: "/posts/{postId}/reactions",
     tags: ["Reactions"],
-    middleware: [requireAuth] as const,  // as const bắt buộc!
+    middleware: [requireAuth] as const, // as const bắt buộc!
     request: {
       params: z.object({ postId: z.string().uuid() }),
-      body: { content: { "application/json": { schema: createReactionSchema } } },
+      body: {
+        content: { "application/json": { schema: createReactionSchema } },
+      },
     },
     responses: {
       201: {
@@ -388,18 +399,19 @@ router.openapi(
     },
   }),
   async (c) => {
-    const user = c.get("user");               // typed vì có Env generic
+    const user = c.get("user"); // typed vì có Env generic
     const { postId } = c.req.valid("param");
     const body = c.req.valid("json");
     const data = await reactionsService.addReaction(postId, user.id, body);
     return c.json({ success: true as const, data }, 201);
-  }
+  },
 );
 
 export const reactionsRouter = router;
 ```
 
 > **Quan trọng:**
+>
 > - Chỉ khai báo response 2xx trong `createRoute()`. Lỗi thì throw `AppError` — global error handler sẽ bắt.
 > - `middleware: [requireAuth] as const` — thiếu `as const` sẽ bị TypeScript error.
 > - `new OpenAPIHono<Env>()` — luôn truyền Env generic để `c.get("user")` có type đúng.
@@ -416,7 +428,7 @@ import { reactionsRouter } from "./routes/v1/reactions.js";
 app.route("/api/v1", reactionsRouter);
 ```
 
-✅ **Xong!** Giờ `GET /api/v1/posts/:postId/reactions` và `POST /api/v1/posts/:postId/reactions` đã hoạt động và tự động xuất hiện trong Swagger UI tại http://localhost:3001/api/docs.
+✅ **Xong!** Giờ `GET /api/v1/posts/:postId/reactions` và `POST /api/v1/posts/:postId/reactions` đã hoạt động và tự động xuất hiện trong Swagger UI tại http://localhost:3003/api/docs.
 
 ---
 
@@ -464,7 +476,9 @@ case "reaction-notification":
 // packages/database/src/schema/content.ts
 // (postReactions đã có sẵn — chỉ ví dụ nếu cần thêm bảng mới)
 export const newTable = pgTable("new_table", {
-  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  id: uuid("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
   // ...
 });
 ```
@@ -495,7 +509,7 @@ export class ReactionsResource {
 
   async getReactions(postId: string) {
     return this.client.get<Array<{ type: string; count: number }>>(
-      `/api/v1/posts/${postId}/reactions`
+      `/api/v1/posts/${postId}/reactions`,
     );
   }
 
@@ -508,11 +522,14 @@ export class ReactionsResource {
 **2. Đăng ký vào factory trong `packages/api-client/src/index.ts`:**
 
 ```typescript
-export function createApiClient(baseUrl: string, getToken?: () => string | null) {
+export function createApiClient(
+  baseUrl: string,
+  getToken?: () => string | null,
+) {
   const client = new ApiClient({ baseUrl, getToken });
   return {
     posts: new PostsResource(client),
-    reactions: new ReactionsResource(client),  // ← thêm vào đây
+    reactions: new ReactionsResource(client), // ← thêm vào đây
     // ...
   };
 }
@@ -644,7 +661,10 @@ Tất cả responses phải đúng envelope:
 ```typescript
 // ✅ Đúng
 return c.json({ success: true as const, data: post }, 200);
-return c.json({ success: true as const, data: posts, meta: { page, total, totalPages } }, 200);
+return c.json(
+  { success: true as const, data: posts, meta: { page, total, totalPages } },
+  200,
+);
 
 // ❌ Sai — không wrap vào envelope
 return c.json(post, 200);
@@ -714,8 +734,8 @@ CLAUDE.md yêu cầu rõ: Next.js 16 dùng `proxy.ts` (Route Handler) thay vì `
 
 **API docs ở đâu khi đang dev?**
 
-Mở http://localhost:3001/api/docs — Scalar UI tự động generate từ tất cả `createRoute()` đã mount.
-Spec JSON raw: http://localhost:3001/api/v1/openapi.json
+Mở http://localhost:3003/api/docs — Scalar UI tự động generate từ tất cả `createRoute()` đã mount.
+Spec JSON raw: http://localhost:3003/api/v1/openapi.json
 
 ---
 

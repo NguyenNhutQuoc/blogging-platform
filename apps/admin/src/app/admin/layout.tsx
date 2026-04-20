@@ -10,7 +10,11 @@ import { AdminNav } from "@/components/AdminNav";
  * We forward the Cookie header to the API so Better Auth can validate the session.
  * This runs entirely on the server — no client-side flash of protected content.
  */
-export default async function AdminLayout({ children }: { children: React.ReactNode }) {
+export default async function AdminLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   const session = await getSession();
   if (!session) redirect("/login");
 
@@ -32,14 +36,14 @@ async function getSession(): Promise<SessionData | null> {
     const cookieStore = await cookies();
     const cookieHeader = cookieStore.toString();
 
-    const API_URL = process.env.API_URL ?? "http://localhost:3001";
+    const API_URL = process.env.API_URL ?? "http://localhost:3003";
     const res = await fetch(`${API_URL}/api/auth/get-session`, {
       headers: { Cookie: cookieHeader },
       cache: "no-store",
     });
 
     if (!res.ok) return null;
-    const data = await res.json() as SessionData | null;
+    const data = (await res.json()) as SessionData | null;
     if (!data?.user) return null;
 
     // Only allow admin and editor roles

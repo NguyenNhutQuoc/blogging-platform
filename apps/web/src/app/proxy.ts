@@ -11,9 +11,11 @@
  */
 import { type NextRequest, NextResponse } from "next/server";
 
-const API_URL = process.env.API_URL ?? "http://localhost:3001";
+const API_URL = process.env.API_URL ?? "http://localhost:3003";
 
-export async function proxyRequest(request: NextRequest): Promise<NextResponse> {
+export async function proxyRequest(
+  request: NextRequest,
+): Promise<NextResponse> {
   const url = new URL(request.url);
   const targetUrl = `${API_URL}${url.pathname}${url.search}`;
 
@@ -24,7 +26,10 @@ export async function proxyRequest(request: NextRequest): Promise<NextResponse> 
   const response = await fetch(targetUrl, {
     method: request.method,
     headers,
-    body: request.method !== "GET" && request.method !== "HEAD" ? request.body : undefined,
+    body:
+      request.method !== "GET" && request.method !== "HEAD"
+        ? request.body
+        : undefined,
     // @ts-expect-error — Next.js 16 requires duplex for streaming bodies
     duplex: "half",
   });

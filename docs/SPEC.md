@@ -7,7 +7,9 @@
 ## 1. TỔNG QUAN DỰ ÁN
 
 ### 1.1 Mục tiêu
+
 Xây dựng một **Professional Blogging Platform** dạng monorepo với các tính năng:
+
 - Multi-author blogging platform (không phải personal blog)
 - Subscription-based monetization (Free / Pro / Premium tiers)
 - SEO-first architecture
@@ -17,10 +19,11 @@ Xây dựng một **Professional Blogging Platform** dạng monorepo với các 
 - Legal compliance (GDPR, DMCA, Terms of Service)
 
 ### 1.2 Tech Stack (Bắt buộc)
+
 ```
 Monorepo Tool    : Turborepo
 Frontend (Blog)  : Next.js 16 (App Router, Turbopack default) + TypeScript
-Frontend (Admin) : Next.js 16 (App Router, Turbopack default) + TypeScript  
+Frontend (Admin) : Next.js 16 (App Router, Turbopack default) + TypeScript
 Backend API      : Hono.js + TypeScript (chạy trên Node.js/Bun)
 Database         : PostgreSQL 16+
 ORM              : Drizzle ORM
@@ -38,6 +41,7 @@ CI/CD            : GitHub Actions
 ```
 
 ### 1.3 Next.js 16 — Lưu ý quan trọng
+
 ```
 - Turbopack là bundler mặc định (KHÔNG cần --turbopack flag nữa)
 - Dùng `proxy.ts` thay vì `middleware.ts` (middleware.ts đã deprecated)
@@ -48,6 +52,7 @@ CI/CD            : GitHub Actions
 ```
 
 ### 1.4 Mobile-Ready Architecture
+
 ```
 Vì sẽ có mobile app trong tương lai, kiến trúc cần đảm bảo:
 - Hono.js API là standalone, stateless, không phụ thuộc Next.js
@@ -103,6 +108,7 @@ blog-platform/
 ## 3. DATABASE DESIGN (PostgreSQL + Drizzle ORM)
 
 ### 3.1 Nguyên tắc thiết kế Database
+
 - Sử dụng **UUID v7** cho tất cả primary key (sortable + unique)
 - Tất cả bảng có `created_at`, `updated_at` (auto-managed)
 - Soft delete bằng `deleted_at` cho các entity quan trọng
@@ -113,11 +119,12 @@ blog-platform/
 ### 3.2 Core Tables
 
 #### Auth Tables
+
 ```
-- users: id, email, name, avatar_url, bio, role(admin/editor/author/subscriber), 
+- users: id, email, name, avatar_url, bio, role(admin/editor/author/subscriber),
          email_verified_at, status(active/suspended/banned), metadata(jsonb),
          created_at, updated_at, deleted_at
-         
+
 - sessions: (managed by Better Auth — cookie-based cho web)
 - accounts: (managed by Better Auth — OAuth providers: Google, GitHub)
 - verification_tokens: (managed by Better Auth)
@@ -131,12 +138,13 @@ Better Auth cần config dual strategy:
 ```
 
 #### Content Tables
+
 ```
-- posts: id, author_id(→users), title, slug(unique), excerpt, 
+- posts: id, author_id(→users), title, slug(unique), excerpt,
          content(text — HTML, rendered output từ Tiptap editor),
          content_json(jsonb — Tiptap ProseMirror JSON state, dùng để load lại editor),
          cover_image_url, status(draft/published/scheduled/archived),
-         visibility(free/pro/premium), 
+         visibility(free/pro/premium),
          published_at, scheduled_at,
          reading_time_minutes(computed), word_count(computed),
          seo_title, seo_description, seo_canonical_url, og_image_url,
@@ -157,8 +165,8 @@ Better Auth cần config dual strategy:
 
 - series_posts: series_id, post_id, order_in_series
 
-- comments: id, post_id, author_id(nullable — guest comments), 
-            parent_id(self-ref for threading), content, 
+- comments: id, post_id, author_id(nullable — guest comments),
+            parent_id(self-ref for threading), content,
             status(pending/approved/spam/deleted),
             guest_name, guest_email,
             ip_address, user_agent,
@@ -175,6 +183,7 @@ Better Auth cần config dual strategy:
 ```
 
 #### Billing Tables (prefix: `billing_`)
+
 ```
 - subscription_plans: id, name, slug, description,
                       stripe_price_id_monthly, stripe_price_id_yearly,
@@ -200,8 +209,9 @@ Better Auth cần config dual strategy:
 ```
 
 #### Newsletter Tables
+
 ```
-- newsletter_subscribers: id, email(unique), name, 
+- newsletter_subscribers: id, email(unique), name,
                           status(active/unsubscribed/bounced/complained),
                           source(signup_form/import/checkout),
                           subscribed_at, unsubscribed_at,
@@ -220,6 +230,7 @@ Better Auth cần config dual strategy:
 ```
 
 #### Analytics Tables (prefix: `analytics_`)
+
 ```
 - page_views: id, post_id(nullable), session_id, visitor_id(anonymous hash),
               path, referrer, utm_source, utm_medium, utm_campaign,
@@ -235,6 +246,7 @@ Better Auth cần config dual strategy:
 ```
 
 #### System Tables
+
 ```
 - site_settings: key(pk), value(jsonb), updated_at, updated_by(→users)
 
@@ -250,6 +262,7 @@ Better Auth cần config dual strategy:
 ```
 
 ### 3.3 Index Strategy
+
 ```sql
 -- Performance-critical indexes
 CREATE INDEX idx_posts_slug ON posts(slug) WHERE deleted_at IS NULL;
@@ -274,6 +287,7 @@ CREATE INDEX idx_newsletter_subscribers_status ON newsletter_subscribers(status)
 ## 4. API DESIGN (Hono.js)
 
 ### 4.1 API Architecture
+
 ```
 apps/api/src/
 ├── index.ts                    # App entry point
@@ -289,9 +303,9 @@ apps/api/src/
 │   ├── v1/
 │   │   ├── auth/               # Auth routes (login, register, OAuth)
 │   │   ├── posts/              # CRUD + publish/schedule
-│   │   ├── categories/         
-│   │   ├── tags/               
-│   │   ├── comments/           
+│   │   ├── categories/
+│   │   ├── tags/
+│   │   ├── comments/
 │   │   ├── media/              # Upload, list, delete
 │   │   ├── users/              # Profile, settings
 │   │   ├── subscriptions/      # Plans, subscribe, cancel
@@ -469,20 +483,21 @@ PREMIUM ($19/month hoặc $179/year):
 ```
 
 ### 5.2 Stripe Integration Logic
+
 ```
-- Checkout flow: 
+- Checkout flow:
   1. User chọn plan → POST /subscriptions/checkout
   2. Server tạo Stripe Checkout Session với price_id tương ứng
   3. Redirect user đến Stripe Checkout
   4. Stripe webhook → cập nhật subscription status
-  
+
 - Webhook events cần handle:
   • checkout.session.completed → Tạo subscription record
   • invoice.paid → Extend subscription
   • invoice.payment_failed → Mark as past_due, send email
   • customer.subscription.updated → Sync plan changes
   • customer.subscription.deleted → Mark as canceled
-  
+
 - Customer Portal: cho user tự manage (upgrade/downgrade/cancel)
 - Trial: 14 ngày trial cho Pro plan
 - Coupon system: Admin tạo coupon code → apply khi checkout
@@ -493,6 +508,7 @@ PREMIUM ($19/month hoặc $179/year):
 ## 6. FEATURES CHI TIẾT
 
 ### 6.1 Blog Editor
+
 - Sử dụng **Tiptap** hoặc **Novel** (Tiptap-based) editor
 - **Output format:** HTML (rendered, lưu vào `content`) + ProseMirror JSON (editor state, lưu vào `content_json`)
   → KHÔNG dùng MDX. Tiptap native output là HTML + JSON.
@@ -507,6 +523,7 @@ PREMIUM ($19/month hoặc $179/year):
 - Reading time auto-calculate (word_count / 200 wpm)
 
 ### 6.2 SEO
+
 - Dynamic sitemap.xml generation
 - RSS feed (full + per-category + per-author)
 - robots.txt configurable
@@ -517,6 +534,7 @@ PREMIUM ($19/month hoặc $179/year):
 - Internal linking suggestions
 
 ### 6.3 Newsletter System
+
 - Double opt-in subscription flow
 - Segment subscribers by plan tier
 - Template-based emails (React Email)
@@ -527,6 +545,7 @@ PREMIUM ($19/month hoặc $179/year):
 - Bounce/complaint handling (auto-unsubscribe)
 
 ### 6.4 Analytics (Privacy-Friendly)
+
 - Không dùng cookies cho tracking (fingerprint-free)
 - Track: page views, unique visitors, referrers, countries, devices
 - Per-post analytics: views, reading time, scroll depth, reactions
@@ -536,6 +555,7 @@ PREMIUM ($19/month hoặc $179/year):
 - Export data CSV
 
 ### 6.5 Media Management
+
 - Upload to S3/R2 with presigned URLs
 - Image optimization on upload (sharp/libvips): resize, WebP/AVIF
 - Responsive image srcset generation
@@ -545,6 +565,7 @@ PREMIUM ($19/month hoặc $179/year):
 - Storage quota per user role
 
 ### 6.6 Search
+
 ```
 MVP (Phase 1-4): PostgreSQL Full-Text Search
 - Dùng tsvector column trên posts (title, content, tags)
@@ -561,6 +582,7 @@ Phase 5+ (Optional upgrade): Meilisearch
 ```
 
 ### 6.7 Comments System
+
 - Threaded replies (max 3 levels deep)
 - Guest commenting (with name + email, no account needed)
 - Markdown support in comments
@@ -574,6 +596,7 @@ Phase 5+ (Optional upgrade): Meilisearch
 ## 7. LEGAL & COMPLIANCE
 
 ### 7.1 Các trang pháp lý cần tạo (dạng seed content)
+
 Hãy tạo **template content** cho các trang sau (trong file seed):
 
 1. **Privacy Policy** — bao gồm:
@@ -605,18 +628,19 @@ Hãy tạo **template content** cho các trang sau (trong file seed):
    - Refund process qua Stripe
 
 ### 7.2 Technical Compliance
+
 ```
 - GDPR:
   • Consent banner cho cookies/tracking
   • Data export endpoint (GET /api/v1/users/me/data-export)
   • Account deletion endpoint (DELETE /api/v1/users/me — full data wipe after 30 days grace period)
   • Privacy-friendly analytics (no PII in analytics)
-  
+
 - Email:
   • CAN-SPAM compliant (physical address in footer, unsubscribe link)
   • GDPR double opt-in for newsletter
   • One-click unsubscribe header (RFC 8058)
-  
+
 - Security:
   • Rate limiting on all endpoints
   • CSRF protection
@@ -707,6 +731,7 @@ MVP = Platform có thể:
 ## 10. JOB QUEUE (BullMQ)
 
 ### 10.1 Tại sao cần Job Queue
+
 ```
 Nhiều tác vụ KHÔNG nên chạy synchronous trong API request:
 - Gửi email (slow, có thể fail, cần retry)
@@ -720,6 +745,7 @@ Nhiều tác vụ KHÔNG nên chạy synchronous trong API request:
 ```
 
 ### 10.2 Queue Design
+
 ```
 Queues:
 ├── email-queue          # Transactional emails (welcome, reset password, payment failed)
@@ -748,6 +774,7 @@ Worker deployment:
 ## 11. CACHING STRATEGY
 
 ### 11.1 Redis Cache Layers
+
 ```
 Layer 1 — API Response Cache:
 ├── GET /api/v1/posts (published, paginated)
@@ -773,6 +800,7 @@ Layer 3 — Computed Data Cache:
 ```
 
 ### 11.2 Cache Invalidation Strategy
+
 ```
 Pattern: Write-through invalidation
 - Khi data thay đổi → delete related cache keys (không update cache)
@@ -789,6 +817,7 @@ Edge cases:
 ```
 
 ### 11.3 Next.js 16 Caching (Frontend)
+
 ```
 - Dùng `use cache` directive cho:
   • Layout components (sidebar, navigation — thay đổi ít)
@@ -842,6 +871,7 @@ Recovery Procedure (document trong README):
 ## 13. TESTING STRATEGY
 
 ### 13.1 Testing Stack
+
 ```
 Framework    : Vitest
 HTTP Testing : supertest hoặc Hono test client (app.request)
@@ -888,6 +918,7 @@ API Integration Tests (apps/api/):
 ```
 
 ### 13.3 Test Database Setup
+
 ```
 - Docker Compose có service `postgres-test` chạy trên port 5433
 - Mỗi test suite: reset DB bằng Drizzle migrate + truncate
@@ -967,6 +998,7 @@ PHASE 6 — Production Ready:
 ```
 
 ### 14.2 Coding Standards
+
 ```
 - Mọi function phải có JSDoc comment giải thích business logic
 - Sử dụng Zod cho TOÀN BỘ input validation (shared trong packages/validators)
@@ -980,11 +1012,12 @@ PHASE 6 — Production Ready:
 ```
 
 ### 14.3 Environment Variables (.env.example)
+
 ```env
 # App
 NODE_ENV=development
 APP_URL=http://localhost:3000
-API_URL=http://localhost:3001
+API_URL=http://localhost:3003
 ADMIN_URL=http://localhost:3002
 
 # Database
@@ -996,7 +1029,7 @@ REDIS_URL=redis://localhost:6379
 
 # Auth (Better Auth)
 BETTER_AUTH_SECRET=your-secret-key
-BETTER_AUTH_URL=http://localhost:3001/api/v1/auth
+BETTER_AUTH_URL=http://localhost:3003/api/v1/auth
 GOOGLE_CLIENT_ID=
 GOOGLE_CLIENT_SECRET=
 GITHUB_CLIENT_ID=
@@ -1035,12 +1068,14 @@ ANALYTICS_SALT=random-salt-for-visitor-hashing
 ## 15. YÊU CẦU BẮT BUỘC KHÁC
 
 ### 15.1 Git
+
 - Conventional commits: `feat:`, `fix:`, `chore:`, `docs:`, `refactor:`, `test:`
 - Mỗi phase hoàn thành = 1 commit message rõ ràng
 - Giữ `.gitignore` sạch
 - Branch strategy: `main` (stable) + `develop` (working)
 
 ### 15.2 Documentation
+
 - README.md tổng quan dự án + hướng dẫn setup (docker compose up → ready)
 - Mỗi package có README riêng giải thích purpose + usage
 - API documentation: auto-generated từ @hono/zod-openapi → Scalar UI tại /api/docs
@@ -1054,6 +1089,7 @@ ANALYTICS_SALT=random-salt-for-visitor-hashing
 **Hãy bắt đầu với PHASE 1 — Foundation.**
 
 Trước khi code, hãy:
+
 1. Xác nhận lại tech stack và structure với tôi
 2. Liệt kê các dependencies chính sẽ cài (với version numbers)
 3. Bắt đầu từ monorepo setup
@@ -1062,6 +1098,7 @@ Trước khi code, hãy:
 Tóm tắt những gì đã làm, liệt kê test results, và chờ tôi review trước khi tiếp tục.
 
 **LƯU Ý QUAN TRỌNG:**
+
 - Tôi sẽ review code rất kĩ. Hãy viết code như thể một Senior Dev khác sẽ đọc.
 - Ưu tiên readability over cleverness.
 - Comment giải thích WHY, không phải WHAT.

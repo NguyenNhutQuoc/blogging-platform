@@ -45,25 +45,36 @@ export default async function AdminPostsPage({
       {data === null ? (
         <p className="text-muted-foreground">Failed to load posts.</p>
       ) : data.posts.length === 0 ? (
-        <p className="text-muted-foreground py-8 text-center">No posts found.</p>
+        <p className="text-muted-foreground py-8 text-center">
+          No posts found.
+        </p>
       ) : (
         <div className="rounded-lg border overflow-hidden">
           <table className="w-full text-sm">
             <thead className="bg-muted/50 border-b">
               <tr>
                 <th className="text-left px-4 py-3 font-medium">Title</th>
-                <th className="text-left px-4 py-3 font-medium hidden md:table-cell">Author</th>
+                <th className="text-left px-4 py-3 font-medium hidden md:table-cell">
+                  Author
+                </th>
                 <th className="text-left px-4 py-3 font-medium">Status</th>
-                <th className="text-left px-4 py-3 font-medium hidden sm:table-cell">Date</th>
+                <th className="text-left px-4 py-3 font-medium hidden sm:table-cell">
+                  Date
+                </th>
                 <th className="px-4 py-3" />
               </tr>
             </thead>
             <tbody className="divide-y">
               {data.posts.map((post) => (
-                <tr key={post.id} className="hover:bg-muted/30 transition-colors">
+                <tr
+                  key={post.id}
+                  className="hover:bg-muted/30 transition-colors"
+                >
                   <td className="px-4 py-3">
                     <div className="font-medium line-clamp-1">{post.title}</div>
-                    <div className="text-xs text-muted-foreground mt-0.5">/{post.slug}</div>
+                    <div className="text-xs text-muted-foreground mt-0.5">
+                      /{post.slug}
+                    </div>
                   </td>
                   <td className="px-4 py-3 hidden md:table-cell text-muted-foreground">
                     {post.author.name}
@@ -95,16 +106,24 @@ export default async function AdminPostsPage({
       {data && data.meta.totalPages > 1 && (
         <div className="flex justify-center gap-2 mt-6">
           {page > 1 && (
-            <a href={`/admin/posts?page=${page - 1}${status ? `&status=${status}` : ""}`}>
-              <Button variant="outline" size="sm">Previous</Button>
+            <a
+              href={`/admin/posts?page=${page - 1}${status ? `&status=${status}` : ""}`}
+            >
+              <Button variant="outline" size="sm">
+                Previous
+              </Button>
             </a>
           )}
           <span className="text-sm text-muted-foreground self-center">
             Page {page} of {data.meta.totalPages}
           </span>
           {page < data.meta.totalPages && (
-            <a href={`/admin/posts?page=${page + 1}${status ? `&status=${status}` : ""}`}>
-              <Button variant="outline" size="sm">Next</Button>
+            <a
+              href={`/admin/posts?page=${page + 1}${status ? `&status=${status}` : ""}`}
+            >
+              <Button variant="outline" size="sm">
+                Next
+              </Button>
             </a>
           )}
         </div>
@@ -114,7 +133,10 @@ export default async function AdminPostsPage({
 }
 
 function StatusBadge({ status }: { status: PostDetail["status"] }) {
-  const variants: Record<PostDetail["status"], "default" | "secondary" | "outline" | "destructive"> = {
+  const variants: Record<
+    PostDetail["status"],
+    "default" | "secondary" | "outline" | "destructive"
+  > = {
     published: "default",
     draft: "secondary",
     scheduled: "outline",
@@ -127,7 +149,7 @@ async function fetchAdminPosts(params: { status?: string; page: number }) {
   try {
     const cookieStore = await cookies();
     const cookieHeader = cookieStore.toString();
-    const API_URL = process.env.API_URL ?? "http://localhost:3001";
+    const API_URL = process.env.API_URL ?? "http://localhost:3003";
 
     const qs = new URLSearchParams({
       page: String(params.page),
@@ -141,8 +163,12 @@ async function fetchAdminPosts(params: { status?: string; page: number }) {
     });
 
     if (!res.ok) return null;
-    type Envelope = { success: boolean; data: PostDetail[]; meta: { totalPages: number } };
-    const body = await res.json() as Envelope;
+    type Envelope = {
+      success: boolean;
+      data: PostDetail[];
+      meta: { totalPages: number };
+    };
+    const body = (await res.json()) as Envelope;
     return body.success ? { posts: body.data, meta: body.meta } : null;
   } catch {
     return null;
