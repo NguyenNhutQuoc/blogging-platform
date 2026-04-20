@@ -1,11 +1,12 @@
 import type { ApiClient } from "../client.js";
-import type { PostSummary, ApiResponse, ApiMeta } from "@repo/shared";
+import type { PostSummary, ApiResponse } from "@repo/shared";
 
 export interface PostDetail extends PostSummary {
   content: string;
   contentJson?: Record<string, unknown> | null;
   seoTitle?: string | null;
   seoDescription?: string | null;
+  seoCanonicalUrl?: string | null;
   ogImageUrl?: string | null;
   wordCount?: number | null;
   categories: Array<{ id: string; name: string; slug: string }>;
@@ -19,20 +20,28 @@ export interface ListPostsParams {
   visibility?: "free" | "pro" | "premium";
   categoryId?: string;
   tagId?: string;
+  authorId?: string;
   q?: string;
-}
-
-export interface ListPostsResponse {
-  posts: PostSummary[];
-  meta: ApiMeta;
 }
 
 export class PostsResource {
   constructor(private readonly client: ApiClient) {}
 
-  async list(params?: ListPostsParams): Promise<ApiResponse<ListPostsResponse>> {
-    const qs = params ? "?" + new URLSearchParams(params as Record<string, string>).toString() : "";
-    return this.client.get<ListPostsResponse>(`/api/v1/posts${qs}`);
+  /**
+   * Lists posts. Returns `ApiResponse<PostDetail[]>` — the array is in `data`,
+   * pagination info is in `meta` of the response envelope.
+   */
+  async list(params?: ListPostsParams): Promise<ApiResponse<PostDetail[]>> {
+    const qs = params
+      ? "?" + new URLSearchParams(
+          Object.fromEntries(
+            Object.entries(params)
+              .filter(([, v]) => v !== undefined && v !== null)
+              .map(([k, v]) => [k, String(v)])
+          )
+        ).toString()
+      : "";
+    return this.client.get<PostDetail[]>(`/api/v1/posts${qs}`);
   }
 
   async getBySlug(slug: string): Promise<ApiResponse<PostDetail>> {

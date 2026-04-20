@@ -1,3 +1,3 @@
-export type * from "./api.js";
-export type * from "./user.js";
-export type * from "./post.js";
+export type * from "./api";
+export type * from "./user";
+export type * from "./post";
