@@ -3,6 +3,7 @@ import { apiReference } from "@scalar/hono-api-reference";
 import { corsMiddleware } from "./middleware/cors.js";
 import { loggerMiddleware } from "./middleware/logger.js";
 import { errorHandler } from "./middleware/error-handler.js";
+import { globalRateLimit, authRateLimit } from "./middleware/rate-limit.js";
 import { healthRouter } from "./routes/v1/health.js";
 import { authRouter } from "./routes/v1/auth.js";
 import { postsRouter } from "./routes/v1/posts.js";
@@ -23,6 +24,8 @@ export const app = new OpenAPIHono();
 // ── Global middleware ──────────────────────────────────────────────────────
 app.use("*", loggerMiddleware);
 app.use("*", corsMiddleware);
+app.use("*", globalRateLimit);
+app.use("/api/v1/auth/*", authRateLimit);
 
 // ── OpenAPI spec ───────────────────────────────────────────────────────────
 app.doc("/api/v1/openapi.json", {

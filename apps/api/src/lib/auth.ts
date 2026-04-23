@@ -4,6 +4,8 @@ import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { db } from "./db.js";
 import * as schema from "@repo/database/schema";
 import { env } from "./env.js";
+import { emailQueue } from "../jobs/queues.js";
+import type { EmailJobData } from "../jobs/workers/email.worker.js";
 
 /**
  * Better Auth instance — configured for dual-mode auth:
@@ -30,14 +32,14 @@ export const auth = betterAuth({
     requireEmailVerification: false, // Set to true in production
   },
   socialProviders: {
-    google: {
-      clientId: process.env.GOOGLE_CLIENT_ID ?? "",
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET ?? "",
-    },
-    github: {
-      clientId: process.env.GITHUB_CLIENT_ID ?? "",
-      clientSecret: process.env.GITHUB_CLIENT_SECRET ?? "",
-    },
+    // Only register OAuth providers when credentials are set — empty strings cause
+    // silent auth failures that are hard to debug.
+    ...(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET
+      ? { google: { clientId: process.env.GOOGLE_CLIENT_ID, clientSecret: process.env.GOOGLE_CLIENT_SECRET } }
+      : {}),
+    ...(process.env.GITHUB_CLIENT_ID && process.env.GITHUB_CLIENT_SECRET
+      ? { github: { clientId: process.env.GITHUB_CLIENT_ID, clientSecret: process.env.GITHUB_CLIENT_SECRET } }
+      : {}),
   },
   plugins: [
     /**
@@ -48,6 +50,27 @@ export const auth = betterAuth({
     bearer(),
   ],
   trustedOrigins: [env.APP_URL, env.ADMIN_URL],
+  databaseHooks: {
+    user: {
+      create: {
+        after: async (user) => {
+          const jobData: EmailJobData = {
+            to: user.email,
+            subject: `Welcome to the blog!`,
+            template: "welcome",
+            props: {
+              name: user.name,
+              loginUrl: env.APP_URL,
+            },
+          };
+          await emailQueue.add("welcome-email", jobData).catch((err: Error) => {
+            // Non-fatal: log but don't block account creation
+            console.error("[Auth] Failed to queue welcome email:", err.message);
+          });
+        },
+      },
+    },
+  },
 });
 
 export type Auth = typeof auth;

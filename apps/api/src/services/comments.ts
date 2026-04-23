@@ -19,7 +19,7 @@ interface Actor {
 export interface CreateCommentInput {
   postId: string;
   content: string;
-  /** ID of the comment being replied to. Max nesting depth: 3 levels. */
+  /** ID of the comment being replied to. Max nesting: root → 1 reply level. */
   parentId?: string | null;
 }
 
@@ -55,8 +55,8 @@ export async function createComment(actor: Actor, input: CreateCommentInput) {
       throw AppError.notFound("Parent comment not found");
     }
     if (parent.parentId) {
-      // Parent already has a parent → max 2 levels deep reached
-      throw AppError.validation("Replies can only be 2 levels deep");
+      // Only root comments (depth 0) can be replied to — replies cannot be nested further
+      throw AppError.validation("Cannot reply to a reply — only top-level comments can be replied to");
     }
   }
 
@@ -73,17 +73,20 @@ export async function createComment(actor: Actor, input: CreateCommentInput) {
     status,
   });
 
-  // Notify post author when their post receives a new approved comment
-  if (status === "approved" && post.authorId !== actor.id) {
-    const postWithAuthor = await postsRepo.findPostById(input.postId);
-    if (postWithAuthor?.author) {
+  // Notify post author when their post receives a new approved comment.
+  // Throttled to 1 email per post per hour to prevent inbox flooding on popular posts.
+  if (status === "approved" && post.authorId !== actor.id && post.author?.email) {
+    const { redis } = await import("../lib/redis.js");
+    const throttleKey = `comment-notif:${input.postId}`;
+    const alreadySent = await redis.set(throttleKey, "1", "EX", 3600, "NX");
+    if (alreadySent === "OK") {
       const excerpt = input.content.slice(0, 200) + (input.content.length > 200 ? "…" : "");
       const jobData: EmailJobData = {
-        to: postWithAuthor.author.id, // email would be fetched in real scenario
+        to: post.author.email,
         subject: `New comment on "${post.title}"`,
         template: "comment-notification",
         props: {
-          authorName: postWithAuthor.author.name,
+          authorName: post.author.name,
           commenterName: actor.name,
           postTitle: post.title,
           commentExcerpt: excerpt,

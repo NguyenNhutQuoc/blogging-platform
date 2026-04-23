@@ -58,7 +58,7 @@ export default async function HomePage({ searchParams }: PageProps) {
 async function fetchPublishedPosts(page: number) {
   "use cache";
   cacheTag("posts", "posts-list");
-  cacheLife("minutes");
+  cacheLife({ stale: 60, revalidate: 300, expire: 3600 }); // stale 1m, revalidate 5m, expire 1h
 
   try {
     const result = await api.posts.list({ status: "published", page, pageSize: 12 });

@@ -4,6 +4,8 @@ import { AppError } from "../lib/errors.js";
 import { searchIndexQueue } from "../jobs/queues.js";
 import * as postsRepo from "../repositories/posts.js";
 import * as revisionsRepo from "../repositories/revisions.js";
+import * as categoriesRepo from "../repositories/categories.js";
+import * as tagsRepo from "../repositories/tags.js";
 import type { CreatePostInput, UpdatePostInput, ListPostsInput, SchedulePostInput } from "@repo/validators/post";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -114,6 +116,8 @@ export async function createPost(actor: Actor, input: CreatePostInput) {
     ...rest,
   });
 
+  await validateCategoryAndTagIds(categoryIds, tagIds);
+
   // Attach categories and tags (replace strategy — safe on create since post is new)
   await Promise.all([
     postsRepo.setPostCategories(post.id, categoryIds),
@@ -169,6 +173,10 @@ export async function updatePost(id: string, actor: Actor, input: UpdatePostInpu
       revisionNumber,
     });
     await revisionsRepo.pruneRevisions(id);
+  }
+
+  if (categoryIds !== undefined || tagIds !== undefined) {
+    await validateCategoryAndTagIds(categoryIds ?? [], tagIds ?? []);
   }
 
   if (categoryIds !== undefined) {
@@ -247,6 +255,19 @@ export async function deletePost(id: string, actor: Actor) {
 }
 
 // ─── Private helpers ──────────────────────────────────────────────────────────
+
+async function validateCategoryAndTagIds(categoryIds: string[], tagIds: string[]): Promise<void> {
+  const [foundCats, foundTags] = await Promise.all([
+    categoriesRepo.findCategoriesByIds(categoryIds),
+    tagsRepo.findTagsByIds(tagIds),
+  ]);
+  if (foundCats.length !== categoryIds.length) {
+    throw AppError.validation("One or more category IDs do not exist");
+  }
+  if (foundTags.length !== tagIds.length) {
+    throw AppError.validation("One or more tag IDs do not exist");
+  }
+}
 
 async function validateAndNormalizeSlug(rawSlug: string, excludeId?: string): Promise<string> {
   const slug = slugify(rawSlug);

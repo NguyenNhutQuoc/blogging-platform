@@ -4,6 +4,7 @@ import type { Metadata } from "next";
 import { api } from "@/lib/api";
 import { PostContent } from "@/components/PostContent";
 import { AuthorCard } from "@/components/AuthorCard";
+import { CommentsSection } from "@/components/CommentsSection";
 import { Badge } from "@repo/ui";
 
 interface PageProps {
@@ -116,6 +117,9 @@ export default async function PostPage({ params }: PageProps) {
       <div className="mt-12">
         <AuthorCard author={post.author} />
       </div>
+
+      {/* Comments */}
+      <CommentsSection postId={post.id} />
     </article>
   );
 }
@@ -123,12 +127,12 @@ export default async function PostPage({ params }: PageProps) {
 async function fetchPost(slug: string) {
   "use cache";
   cacheTag(`post-${slug}`);
-  cacheLife("hours");
+  cacheLife({ stale: 3600, revalidate: 3600, expire: 86400 }); // stale 1h, revalidate 1h, expire 24h
 
   try {
     const result = await api.posts.getBySlug(slug);
-    if (!result.success) return null;
-    return result.data!;
+    if (!result.success || !result.data) return null;
+    return result.data;
   } catch {
     return null;
   }
@@ -167,8 +171,8 @@ export async function generateStaticParams() {
   // Pre-render the most recent 100 published posts at build time
   try {
     const result = await api.posts.list({ status: "published", page: 1, pageSize: 100 });
-    if (!result.success) return [];
-    return result.data!.map((p) => ({ slug: p.slug }));
+    if (!result.success || !result.data) return [];
+    return result.data.map((p) => ({ slug: p.slug }));
   } catch {
     return [];
   }

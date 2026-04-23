@@ -22,7 +22,13 @@ const searchResultSchema = z.object({
 const searchResponseSchema = z.object({
   success: z.literal(true),
   data: z.array(searchResultSchema),
-  meta: z.object({ q: z.string(), total: z.number() }),
+  meta: z.object({
+    q: z.string(),
+    total: z.number(),
+    page: z.number(),
+    pageSize: z.number(),
+    totalPages: z.number(),
+  }),
 });
 
 /**
@@ -98,7 +104,7 @@ router.openapi(
         )
       )
       .orderBy(
-        desc(sql`ts_rank(${posts.searchVector}, websearch_to_tsquery('simple', ${q}))`)
+        desc(sql`rank`)
       )
       .limit(pageSize)
       .offset(offset);
@@ -130,7 +136,7 @@ router.openapi(
         rank: r.rank,
         highlight: r.highlight ?? null,
       })),
-      meta: { q, total },
+      meta: { q, total, page, pageSize, totalPages: Math.ceil(total / pageSize) },
     }, 200);
   }
 );

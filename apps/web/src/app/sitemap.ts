@@ -54,13 +54,23 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 }
 
 async function fetchAllPublishedPosts() {
+  const all: Awaited<ReturnType<typeof api.posts.list>>["data"] = [];
+  const pageSize = 100;
+  let page = 1;
+
   try {
-    // Fetch up to 1000 posts for the sitemap — adjust pageSize if needed
-    const result = await api.posts.list({ status: "published", page: 1, pageSize: 1000 });
-    return result.success ? result.data! : [];
+    while (true) {
+      const result = await api.posts.list({ status: "published", page, pageSize });
+      if (!result.success || !result.data?.length) break;
+      all.push(...result.data);
+      if (result.data.length < pageSize) break;
+      page++;
+    }
   } catch {
-    return [];
+    // Return whatever we collected before the error
   }
+
+  return all ?? [];
 }
 
 async function fetchAllCategories() {

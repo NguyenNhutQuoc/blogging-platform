@@ -1,5 +1,6 @@
 import { createRoute, OpenAPIHono, z } from "@hono/zod-openapi";
 import { requireAuth, requireRole } from "../../middleware/auth.js";
+import { AppError } from "../../lib/errors.js";
 import * as commentsService from "../../services/comments.js";
 
 type Env = { Variables: { user: { id: string; role: string; email: string; name: string }; session: Record<string, unknown> } };
@@ -41,7 +42,13 @@ const createCommentSchema = z.object({
   parentId: z.string().uuid().optional().nullable(),
 });
 
-function serializeComment(comment: NonNullable<Awaited<ReturnType<typeof commentsService.createComment>>>) {
+type CommentAuthorShape = { id: string; name: string; avatarUrl: string | null } | null;
+
+type SerializableComment = Awaited<ReturnType<typeof commentsService.createComment>> & {
+  author?: CommentAuthorShape;
+};
+
+function serializeComment(comment: SerializableComment) {
   return {
     id: comment.id,
     postId: comment.postId,
@@ -53,7 +60,7 @@ function serializeComment(comment: NonNullable<Awaited<ReturnType<typeof comment
     guestEmail: comment.guestEmail ?? null,
     createdAt: comment.createdAt.toISOString(),
     updatedAt: comment.updatedAt.toISOString(),
-    author: (comment as { author?: { id: string; name: string; avatarUrl: string | null } | null }).author ?? null,
+    author: comment.author ?? null,
   };
 }
 
@@ -152,7 +159,8 @@ router.openapi(
       name: user.name,
     }, content);
 
-    return c.json({ success: true as const, data: serializeComment(comment!) }, 200);
+    if (!comment) throw AppError.notFound("Comment not found");
+    return c.json({ success: true as const, data: serializeComment(comment) }, 200);
   }
 );
 
@@ -191,7 +199,8 @@ router.openapi(
       status
     );
 
-    return c.json({ success: true as const, data: serializeComment(comment!) }, 200);
+    if (!comment) throw AppError.notFound("Comment not found");
+    return c.json({ success: true as const, data: serializeComment(comment) }, 200);
   }
 );
 
