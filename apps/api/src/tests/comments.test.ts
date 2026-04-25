@@ -126,6 +126,124 @@ describe("POST /api/v1/posts/:postId/comments", () => {
   });
 });
 
+describe("PATCH /api/v1/comments/:id", () => {
+  beforeEach(() => clearAuth());
+
+  it("allows author to edit their own comment", async () => {
+    const author = await createTestUser({ role: "author" });
+    const post = await createTestPost(author.id, { status: "published", publishedAt: new Date(), slug: "edit-comment-post" });
+
+    const admin = await createTestUser({ role: "admin" });
+    mockAuth({ id: admin.id, role: admin.role, email: admin.email, name: admin.name });
+
+    const commentRes = await postComment(post.id, "Original content");
+    const commentId = (await commentRes.json() as { data: { id: string } }).data.id;
+
+    const res = await app.request(`/api/v1/comments/${commentId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ content: "Edited content" }),
+    });
+
+    expect(res.status).toBe(200);
+    const body = await res.json() as { data: { content: string } };
+    expect(body.data.content).toBe("Edited content");
+  });
+
+  it("returns 403 when editing another user's comment", async () => {
+    const author = await createTestUser({ role: "author" });
+    const post = await createTestPost(author.id, { status: "published", publishedAt: new Date(), slug: "edit-forbidden-post" });
+
+    const admin = await createTestUser({ role: "admin" });
+    mockAuth({ id: admin.id, role: admin.role, email: admin.email, name: admin.name });
+
+    const commentRes = await postComment(post.id, "Admin's comment");
+    const commentId = (await commentRes.json() as { data: { id: string } }).data.id;
+
+    const other = await createTestUser({ role: "subscriber", email: "other2@test.com" });
+    mockAuth({ id: other.id, role: other.role, email: other.email, name: other.name });
+
+    const res = await app.request(`/api/v1/comments/${commentId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ content: "Hijacked" }),
+    });
+
+    expect(res.status).toBe(403);
+  });
+});
+
+describe("POST /api/v1/comments/:id/moderate", () => {
+  beforeEach(() => clearAuth());
+
+  it("admin can approve a pending comment", async () => {
+    const author = await createTestUser({ role: "author" });
+    const post = await createTestPost(author.id, { status: "published", publishedAt: new Date(), slug: "moderate-post" });
+
+    const subscriber = await createTestUser({ role: "subscriber", email: "sub2@test.com" });
+    mockAuth({ id: subscriber.id, role: subscriber.role, email: subscriber.email, name: subscriber.name });
+
+    const commentRes = await postComment(post.id, "Pending comment");
+    const commentId = (await commentRes.json() as { data: { id: string; status: string } }).data.id;
+
+    const admin = await createTestUser({ role: "admin", email: "admin2@test.com" });
+    mockAuth({ id: admin.id, role: admin.role, email: admin.email, name: admin.name });
+
+    const res = await app.request(`/api/v1/comments/${commentId}/moderate`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ status: "approved" }),
+    });
+
+    expect(res.status).toBe(200);
+    const body = await res.json() as { data: { status: string } };
+    expect(body.data.status).toBe("approved");
+  });
+
+  it("admin can mark a comment as spam", async () => {
+    const author = await createTestUser({ role: "author" });
+    const post = await createTestPost(author.id, { status: "published", publishedAt: new Date(), slug: "spam-post" });
+
+    const admin = await createTestUser({ role: "admin", email: "admin3@test.com" });
+    mockAuth({ id: admin.id, role: admin.role, email: admin.email, name: admin.name });
+
+    const commentRes = await postComment(post.id, "Spam content");
+    const commentId = (await commentRes.json() as { data: { id: string } }).data.id;
+
+    const res = await app.request(`/api/v1/comments/${commentId}/moderate`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ status: "spam" }),
+    });
+
+    expect(res.status).toBe(200);
+    const body = await res.json() as { data: { status: string } };
+    expect(body.data.status).toBe("spam");
+  });
+
+  it("returns 403 when subscriber tries to moderate", async () => {
+    const author = await createTestUser({ role: "author" });
+    const post = await createTestPost(author.id, { status: "published", publishedAt: new Date(), slug: "moderate-forbidden-post" });
+
+    const admin = await createTestUser({ role: "admin", email: "admin4@test.com" });
+    mockAuth({ id: admin.id, role: admin.role, email: admin.email, name: admin.name });
+
+    const commentRes = await postComment(post.id, "Some comment");
+    const commentId = (await commentRes.json() as { data: { id: string } }).data.id;
+
+    const subscriber = await createTestUser({ role: "subscriber", email: "sub3@test.com" });
+    mockAuth({ id: subscriber.id, role: subscriber.role, email: subscriber.email, name: subscriber.name });
+
+    const res = await app.request(`/api/v1/comments/${commentId}/moderate`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ status: "approved" }),
+    });
+
+    expect(res.status).toBe(403);
+  });
+});
+
 describe("DELETE /api/v1/comments/:id", () => {
   beforeEach(() => clearAuth());
 

@@ -1,6 +1,9 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import { app } from "../app.js";
 import { createTestUser, createTestPost, createTestCategory, createTestTag } from "./helpers.js";
+import { testDb } from "./setup.js";
+import { revisions } from "@repo/database/schema";
+import { eq } from "drizzle-orm";
 
 /**
  * Posts API integration tests.
@@ -267,6 +270,73 @@ describe("PATCH /api/v1/posts/:id", () => {
       body: JSON.stringify({ title: "Admin Edit" }),
     });
     expect(res.status).toBe(200);
+  });
+});
+
+// ─── Visibility filter ────────────────────────────────────────────────────────
+
+describe("GET /api/v1/posts (visibility filter)", () => {
+  it("filters posts by visibility", async () => {
+    const user = await createTestUser();
+    await createTestPost(user.id, { slug: "free-post", visibility: "free", status: "published", publishedAt: new Date() });
+    await createTestPost(user.id, { slug: "pro-post", visibility: "pro", status: "published", publishedAt: new Date() });
+    await createTestPost(user.id, { slug: "premium-post", visibility: "premium", status: "published", publishedAt: new Date() });
+
+    const res = await app.request("/api/v1/posts?status=published&visibility=free");
+    const body = await res.json() as { data: { visibility: string }[] };
+    expect(body.data.every((p) => p.visibility === "free")).toBe(true);
+
+    const proRes = await app.request("/api/v1/posts?status=published&visibility=pro");
+    const proBody = await proRes.json() as { data: { visibility: string }[] };
+    expect(proBody.data.every((p) => p.visibility === "pro")).toBe(true);
+  });
+});
+
+// ─── Revision tracking ────────────────────────────────────────────────────────
+
+describe("PATCH /api/v1/posts/:id (revision tracking)", () => {
+  beforeEach(() => clearAuth());
+
+  it("creates a revision snapshot when content changes", async () => {
+    const user = await createTestUser({ role: "author" });
+    const post = await createTestPost(user.id, { slug: "revision-post", content: "<p>Original</p>" });
+    mockAuth({ id: user.id, role: user.role, email: user.email, name: user.name });
+
+    const res = await app.request(`/api/v1/posts/${post.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ content: "<p>Updated content</p>" }),
+    });
+
+    expect(res.status).toBe(200);
+
+    const savedRevisions = await testDb
+      .select()
+      .from(revisions)
+      .where(eq(revisions.postId, post.id));
+
+    expect(savedRevisions).toHaveLength(1);
+    // Revision stores the PREVIOUS content (before the update)
+    expect(savedRevisions[0]?.content).toBe("<p>Original</p>");
+  });
+
+  it("does not create a revision when content is unchanged", async () => {
+    const user = await createTestUser({ role: "author" });
+    const post = await createTestPost(user.id, { slug: "no-revision-post", content: "<p>Same</p>" });
+    mockAuth({ id: user.id, role: user.role, email: user.email, name: user.name });
+
+    await app.request(`/api/v1/posts/${post.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ title: "Only title changed" }),
+    });
+
+    const savedRevisions = await testDb
+      .select()
+      .from(revisions)
+      .where(eq(revisions.postId, post.id));
+
+    expect(savedRevisions).toHaveLength(0);
   });
 });
 

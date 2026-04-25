@@ -143,7 +143,7 @@ export async function findPostById(id: string) {
   const [row] = await db
     .select({
       post: posts,
-      author: { id: users.id, name: users.name, avatarUrl: users.avatarUrl },
+      author: { id: users.id, name: users.name, avatarUrl: users.avatarUrl, email: users.email },
     })
     .from(posts)
     .innerJoin(users, eq(posts.authorId, users.id))

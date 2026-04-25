@@ -7,6 +7,10 @@ import type { NextConfig } from "next";
  * - `use cache` directive is enabled in Next.js 15+ by default.
  */
 const nextConfig: NextConfig = {
+  env: {
+    NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL ?? process.env.API_URL ?? "http://localhost:3003",
+    NEXT_PUBLIC_ADMIN_URL: process.env.NEXT_PUBLIC_ADMIN_URL ?? process.env.ADMIN_URL ?? "http://localhost:3002",
+  },
   experimental: {
     // Required to use the "use cache" directive (Next.js 15.x)
     useCache: true,

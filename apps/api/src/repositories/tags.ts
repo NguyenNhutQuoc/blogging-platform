@@ -1,10 +1,15 @@
-import { asc, count, eq } from "drizzle-orm";
+import { asc, count, eq, inArray } from "drizzle-orm";
 import { db } from "../lib/db.js";
 import { tags, postTags } from "@repo/database/schema";
 import type { Tag, NewTag } from "@repo/database";
 
 export async function findAllTags() {
   return db.select().from(tags).orderBy(asc(tags.name));
+}
+
+export async function findTagsByIds(ids: string[]): Promise<Tag[]> {
+  if (ids.length === 0) return [];
+  return db.select().from(tags).where(inArray(tags.id, ids));
 }
 
 export async function findTagById(id: string): Promise<Tag | null> {

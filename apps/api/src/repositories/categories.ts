@@ -1,10 +1,15 @@
-import { and, asc, count, eq, isNull } from "drizzle-orm";
+import { and, asc, count, eq, inArray, isNull } from "drizzle-orm";
 import { db } from "../lib/db.js";
 import { categories, postCategories } from "@repo/database/schema";
 import type { Category, NewCategory } from "@repo/database";
 
 export async function findAllCategories() {
   return db.select().from(categories).orderBy(asc(categories.sortOrder), asc(categories.name));
+}
+
+export async function findCategoriesByIds(ids: string[]): Promise<Category[]> {
+  if (ids.length === 0) return [];
+  return db.select().from(categories).where(inArray(categories.id, ids));
 }
 
 export async function findCategoryById(id: string): Promise<Category | null> {
