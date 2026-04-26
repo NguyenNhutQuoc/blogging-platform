@@ -79,6 +79,7 @@ export async function findManyPosts(filter: ListPostsFilter) {
           id: users.id,
           name: users.name,
           avatarUrl: users.avatarUrl,
+          email: users.email,
         },
       })
       .from(posts)
