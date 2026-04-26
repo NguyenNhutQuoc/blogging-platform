@@ -9,7 +9,8 @@
     "./auth": "./src/auth.ts",
     "./comment": "./src/comment.ts",
     "./media": "./src/media.ts",
-    "./pagination": "./src/pagination.ts"
+    "./pagination": "./src/pagination.ts",
+    "./subscription": "./src/subscription.ts"
   },
   "dependencies": {
     "zod": "^3.25.0",

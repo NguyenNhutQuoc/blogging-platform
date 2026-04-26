@@ -6,6 +6,7 @@ import * as postsRepo from "../repositories/posts.js";
 import * as revisionsRepo from "../repositories/revisions.js";
 import * as categoriesRepo from "../repositories/categories.js";
 import * as tagsRepo from "../repositories/tags.js";
+import { resolveUserVisibilityTier } from "./subscriptions.js";
 import type { CreatePostInput, UpdatePostInput, ListPostsInput, SchedulePostInput } from "@repo/validators/post";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -65,9 +66,23 @@ export async function listPosts(input: ListPostsInput) {
   };
 }
 
-export async function getPostBySlug(slug: string) {
+/**
+ * Public post lookup — enforces visibility gating.
+ * Pass viewerId to unlock pro/premium posts for paid subscribers.
+ */
+export async function getPostBySlug(slug: string, viewerId?: string) {
   const post = await postsRepo.findPostBySlug(slug);
   if (!post) throw AppError.notFound(`Post "${slug}" not found`);
+
+  const visibility = post.visibility as "free" | "pro" | "premium";
+  if (visibility !== "free") {
+    const tier = await resolveUserVisibilityTier(viewerId);
+    const tierRank = { free: 0, pro: 1, premium: 2 } as const;
+    if (tierRank[tier] < tierRank[visibility]) {
+      throw AppError.paymentRequired();
+    }
+  }
+
   return post;
 }
 

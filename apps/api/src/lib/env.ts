@@ -57,6 +57,10 @@ export const env = {
 
   ANALYTICS_SALT: optionalEnv("ANALYTICS_SALT", "dev-salt"),
 
+  STRIPE_SECRET_KEY: optionalEnv("STRIPE_SECRET_KEY", ""),
+  STRIPE_WEBHOOK_SECRET: optionalEnv("STRIPE_WEBHOOK_SECRET", ""),
+  STRIPE_PUBLISHABLE_KEY: optionalEnv("STRIPE_PUBLISHABLE_KEY", ""),
+
   /**
    * Comma-separated list of allowed CORS origins.
    * In production, set this to your exact frontend/admin URLs.
