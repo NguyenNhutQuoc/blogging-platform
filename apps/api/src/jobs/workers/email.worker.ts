@@ -7,9 +7,15 @@ import {
   renderWelcomeEmail,
   renderPasswordResetEmail,
   renderCommentNotificationEmail,
+  renderSubscriptionActivatedEmail,
+  renderPaymentFailedEmail,
+  renderSubscriptionCanceledEmail,
   type WelcomeEmailProps,
   type PasswordResetEmailProps,
   type CommentNotificationEmailProps,
+  type SubscriptionActivatedEmailProps,
+  type PaymentFailedEmailProps,
+  type SubscriptionCanceledEmailProps,
 } from "@repo/email-templates";
 
 // ─── Job payload types ────────────────────────────────────────────────────────
@@ -17,14 +23,13 @@ import {
 export type EmailJobData =
   | { to: string; subject: string; template: "welcome"; props: WelcomeEmailProps }
   | { to: string; subject: string; template: "password-reset"; props: PasswordResetEmailProps }
-  | { to: string; subject: string; template: "comment-notification"; props: CommentNotificationEmailProps };
+  | { to: string; subject: string; template: "comment-notification"; props: CommentNotificationEmailProps }
+  | { to: string; subject: string; template: "subscription-activated"; props: SubscriptionActivatedEmailProps }
+  | { to: string; subject: string; template: "payment-failed"; props: PaymentFailedEmailProps }
+  | { to: string; subject: string; template: "subscription-canceled"; props: SubscriptionCanceledEmailProps };
 
 // ─── Template renderer ────────────────────────────────────────────────────────
 
-/**
- * Delegates rendering to @repo/email-templates, which owns React as a dep.
- * The API worker never imports React directly — keeps the backend React-free.
- */
 async function buildEmail(data: EmailJobData): Promise<{ html: string; text: string }> {
   switch (data.template) {
     case "welcome":
@@ -33,18 +38,17 @@ async function buildEmail(data: EmailJobData): Promise<{ html: string; text: str
       return renderPasswordResetEmail(data.props);
     case "comment-notification":
       return renderCommentNotificationEmail(data.props);
+    case "subscription-activated":
+      return renderSubscriptionActivatedEmail(data.props);
+    case "payment-failed":
+      return renderPaymentFailedEmail(data.props);
+    case "subscription-canceled":
+      return renderSubscriptionCanceledEmail(data.props);
   }
 }
 
 // ─── Worker ──────────────────────────────────────────────────────────────────
 
-/**
- * Email worker — processes transactional email jobs via Resend.
- *
- * When RESEND_API_KEY is empty (local dev without an API key), the worker
- * renders the template and logs the HTML to stdout instead of sending —
- * no deliveries fail silently, no surprises in production.
- */
 export const emailWorker = new Worker<EmailJobData>(
   QUEUE_NAMES.EMAIL,
   async (job) => {
@@ -54,8 +58,6 @@ export const emailWorker = new Worker<EmailJobData>(
     const { html, text } = await buildEmail(job.data);
 
     if (!env.RESEND_API_KEY) {
-      // Dev fallback: log the rendered output so developers can inspect
-      // templates without needing a Resend account.
       console.log(`[EmailWorker] RESEND_API_KEY not set — skipping send`);
       console.log(`  To:      ${to}`);
       console.log(`  Subject: ${subject}`);

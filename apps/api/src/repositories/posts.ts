@@ -79,6 +79,7 @@ export async function findManyPosts(filter: ListPostsFilter) {
           id: users.id,
           name: users.name,
           avatarUrl: users.avatarUrl,
+          email: users.email,
         },
       })
       .from(posts)
@@ -176,7 +177,7 @@ export async function findPostBySlug(slug: string) {
   const [row] = await db
     .select({
       post: posts,
-      author: { id: users.id, name: users.name, avatarUrl: users.avatarUrl },
+      author: { id: users.id, name: users.name, avatarUrl: users.avatarUrl, email: users.email },
     })
     .from(posts)
     .innerJoin(users, eq(posts.authorId, users.id))

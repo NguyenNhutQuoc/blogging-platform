@@ -27,6 +27,7 @@ import type {
   subscriptionPlans,
   subscriptions,
   paymentHistory,
+  coupons,
 } from "./schema/billing";
 
 import type {
@@ -58,6 +59,8 @@ export type SeriesPost = typeof seriesPosts.$inferSelect;
 export type SubscriptionPlan = typeof subscriptionPlans.$inferSelect;
 export type Subscription = typeof subscriptions.$inferSelect;
 export type PaymentHistory = typeof paymentHistory.$inferSelect;
+export type Coupon = typeof coupons.$inferSelect;
+export type NewCoupon = typeof coupons.$inferInsert;
 
 /** Newsletter */
 export type NewsletterSubscriber = typeof newsletterSubscribers.$inferSelect;
