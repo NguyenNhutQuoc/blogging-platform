@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import { app } from "../app.js";
 import { createTestUser, createTestPost } from "./helpers.js";
 import { testDb } from "./setup.js";
