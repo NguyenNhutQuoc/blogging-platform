@@ -18,6 +18,12 @@ export const ErrorCode = {
   // Rate limiting
   RATE_LIMITED: "RATE_LIMITED",
 
+  // Billing
+  PAYMENT_REQUIRED: "PAYMENT_REQUIRED",
+  INVALID_COUPON: "INVALID_COUPON",
+  SUBSCRIPTION_ALREADY_ACTIVE: "SUBSCRIPTION_ALREADY_ACTIVE",
+  STRIPE_ERROR: "STRIPE_ERROR",
+
   // Server
   INTERNAL_ERROR: "INTERNAL_ERROR",
   SERVICE_UNAVAILABLE: "SERVICE_UNAVAILABLE",
@@ -62,5 +68,17 @@ export class AppError extends Error {
 
   static internal(message = "Internal server error"): AppError {
     return new AppError(ErrorCode.INTERNAL_ERROR, message, 500);
+  }
+
+  static paymentRequired(message = "A paid subscription is required to access this content"): AppError {
+    return new AppError(ErrorCode.PAYMENT_REQUIRED, message, 402);
+  }
+
+  static invalidCoupon(message: string): AppError {
+    return new AppError(ErrorCode.INVALID_COUPON, message, 422);
+  }
+
+  static stripeError(message: string): AppError {
+    return new AppError(ErrorCode.STRIPE_ERROR, message, 502);
   }
 }

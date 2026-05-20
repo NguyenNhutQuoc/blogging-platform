@@ -2,14 +2,20 @@ import * as React from "react";
 import { WelcomeEmail } from "./templates/WelcomeEmail.js";
 import { PasswordResetEmail } from "./templates/PasswordResetEmail.js";
 import { CommentNotificationEmail } from "./templates/CommentNotificationEmail.js";
+import { SubscriptionActivatedEmail } from "./templates/SubscriptionActivatedEmail.js";
+import { PaymentFailedEmail } from "./templates/PaymentFailedEmail.js";
+import { SubscriptionCanceledEmail } from "./templates/SubscriptionCanceledEmail.js";
 import { renderEmail } from "./render.js";
 
 export { WelcomeEmail } from "./templates/WelcomeEmail.js";
 export { PasswordResetEmail } from "./templates/PasswordResetEmail.js";
 export { CommentNotificationEmail } from "./templates/CommentNotificationEmail.js";
+export { SubscriptionActivatedEmail } from "./templates/SubscriptionActivatedEmail.js";
+export { PaymentFailedEmail } from "./templates/PaymentFailedEmail.js";
+export { SubscriptionCanceledEmail } from "./templates/SubscriptionCanceledEmail.js";
 export { renderEmail } from "./render.js";
 
-// ─── Prop types (re-exported so callers don't need to import React) ───────────
+// ─── Prop types ───────────────────────────────────────────────────────────────
 
 export interface WelcomeEmailProps {
   name: string;
@@ -33,11 +39,32 @@ export interface CommentNotificationEmailProps {
   siteName?: string;
 }
 
-// ─── Convenience render functions ─────────────────────────────────────────────
-//
-// These wrap React.createElement so callers (e.g. the email worker in apps/api)
-// never need to import React themselves. React is a dependency of this package,
-// not of the API — keeping the backend React-free.
+export interface SubscriptionActivatedEmailProps {
+  name: string;
+  planName: string;
+  planFeatures: string[];
+  renewalDate: string;
+  manageUrl: string;
+  siteName?: string;
+}
+
+export interface PaymentFailedEmailProps {
+  name: string;
+  planName: string;
+  amountFormatted: string;
+  updatePaymentUrl: string;
+  siteName?: string;
+}
+
+export interface SubscriptionCanceledEmailProps {
+  name: string;
+  planName: string;
+  accessUntil: string;
+  resubscribeUrl: string;
+  siteName?: string;
+}
+
+// ─── Render functions ─────────────────────────────────────────────────────────
 
 export function renderWelcomeEmail(props: WelcomeEmailProps) {
   return renderEmail(React.createElement(WelcomeEmail, props));
@@ -49,4 +76,16 @@ export function renderPasswordResetEmail(props: PasswordResetEmailProps) {
 
 export function renderCommentNotificationEmail(props: CommentNotificationEmailProps) {
   return renderEmail(React.createElement(CommentNotificationEmail, props));
+}
+
+export function renderSubscriptionActivatedEmail(props: SubscriptionActivatedEmailProps) {
+  return renderEmail(React.createElement(SubscriptionActivatedEmail, props));
+}
+
+export function renderPaymentFailedEmail(props: PaymentFailedEmailProps) {
+  return renderEmail(React.createElement(PaymentFailedEmail, props));
+}
+
+export function renderSubscriptionCanceledEmail(props: SubscriptionCanceledEmailProps) {
+  return renderEmail(React.createElement(SubscriptionCanceledEmail, props));
 }

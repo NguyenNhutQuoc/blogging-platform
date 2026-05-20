@@ -1,5 +1,6 @@
 import { createRoute, OpenAPIHono, z } from "@hono/zod-openapi";
 import { requireAuth } from "../../middleware/auth.js";
+import { auth } from "../../lib/auth.js";
 import { AppError } from "../../lib/errors.js";
 import * as postsService from "../../services/posts.js";
 import {
@@ -180,7 +181,10 @@ const getPostRoute = createRoute({
 
 router.openapi(getPostRoute, async (c) => {
   const { slug } = c.req.valid("param");
-  const post = await postsService.getPostBySlug(slug);
+  // Optional auth — authenticated users can access paid content if subscribed
+  const session = await auth.api.getSession({ headers: c.req.raw.headers });
+  const viewerId = session?.user?.id;
+  const post = await postsService.getPostBySlug(slug, viewerId);
   return c.json({ success: true as const, data: serializePost(post) }, 200);
 });
 
