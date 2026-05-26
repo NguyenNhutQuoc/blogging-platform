@@ -2,7 +2,9 @@ import { describe, it, expect, beforeEach, vi } from "vitest";
 import { app } from "../app.js";
 import { createTestUser } from "./helpers.js";
 
-const mockGdprAdd = vi.fn().mockResolvedValue(undefined);
+const { mockGdprAdd } = vi.hoisted(() => ({
+  mockGdprAdd: vi.fn().mockResolvedValue(undefined),
+}));
 
 vi.mock("../jobs/queues.js", () => ({
   emailQueue: { add: vi.fn() },
