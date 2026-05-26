@@ -49,6 +49,16 @@ export const newsletterSubscribers = pgTable(
     name: text("name"),
     status: subscriberStatusEnum("status").notNull().default("active"),
     source: subscriberSourceEnum("source").notNull().default("signup_form"),
+    /**
+     * One-time token sent in the confirmation email. Cleared after the subscriber
+     * clicks the confirm link. Null = already confirmed.
+     */
+    confirmToken: text("confirm_token").unique(),
+    /**
+     * Permanent token embedded in every newsletter footer's unsubscribe link.
+     * Never changes — allows one-click unsubscribe without being logged in (RFC 8058).
+     */
+    unsubscribeToken: text("unsubscribe_token").notNull().unique(),
     subscribedAt: timestamp("subscribed_at", { withTimezone: true }).defaultNow().notNull(),
     unsubscribedAt: timestamp("unsubscribed_at", { withTimezone: true }),
     metadata: jsonb("metadata"),

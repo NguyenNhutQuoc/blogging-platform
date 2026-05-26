@@ -1,4 +1,4 @@
-import { and, desc, eq, ilike, isNull, sql, inArray, count } from "drizzle-orm";
+import { and, desc, eq, isNull, sql, inArray, count } from "drizzle-orm";
 import { db } from "../lib/db.js";
 import {
   posts,

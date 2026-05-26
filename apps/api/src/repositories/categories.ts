@@ -1,4 +1,4 @@
-import { and, asc, count, eq, inArray, isNull } from "drizzle-orm";
+import { and, asc, count, eq, inArray } from "drizzle-orm";
 import { db } from "../lib/db.js";
 import { categories, postCategories } from "@repo/database/schema";
 import type { Category, NewCategory } from "@repo/database";

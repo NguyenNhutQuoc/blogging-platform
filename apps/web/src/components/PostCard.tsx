@@ -21,7 +21,6 @@ export function PostCard({ post }: PostCardProps) {
       <Card className="h-full overflow-hidden transition-shadow hover:shadow-md">
         {post.coverImageUrl && (
           <div className="aspect-video overflow-hidden">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={post.coverImageUrl}
               alt={post.title}

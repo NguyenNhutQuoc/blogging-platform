@@ -63,6 +63,9 @@ importers:
         specifier: ^1.0.7
         version: 1.0.7(tailwindcss@4.2.2)
     devDependencies:
+      '@repo/config-eslint':
+        specifier: workspace:*
+        version: link:../../packages/config-eslint
       '@repo/config-typescript':
         specifier: workspace:*
         version: link:../../packages/config-typescript
@@ -151,6 +154,9 @@ importers:
         specifier: ^3.25.0
         version: 3.25.76
     devDependencies:
+      '@repo/config-eslint':
+        specifier: workspace:*
+        version: link:../../packages/config-eslint
       '@repo/config-typescript':
         specifier: workspace:*
         version: link:../../packages/config-typescript
@@ -203,6 +209,9 @@ importers:
         specifier: ^1.0.7
         version: 1.0.7(tailwindcss@4.2.2)
     devDependencies:
+      '@repo/config-eslint':
+        specifier: workspace:*
+        version: link:../../packages/config-eslint
       '@repo/config-typescript':
         specifier: workspace:*
         version: link:../../packages/config-typescript
@@ -363,6 +372,9 @@ importers:
         specifier: ^1.0.7
         version: 1.0.7(tailwindcss@4.2.2)
     devDependencies:
+      '@repo/config-eslint':
+        specifier: workspace:*
+        version: link:../config-eslint
       '@repo/config-typescript':
         specifier: workspace:*
         version: link:../config-typescript

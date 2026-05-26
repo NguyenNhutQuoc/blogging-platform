@@ -34,7 +34,7 @@ const VARIANT_WIDTHS = [400, 800, 1200] as const;
 export const imageWorker = new Worker<ImageJobData>(
   QUEUE_NAMES.IMAGE,
   async (job) => {
-    const { mediaId, storageKey, mimeType } = job.data;
+    const { mediaId, storageKey } = job.data;
     console.log(`[ImageWorker] Optimizing media ${mediaId}`);
 
     // 1. Download original from S3

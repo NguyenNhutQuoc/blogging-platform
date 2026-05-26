@@ -12,6 +12,7 @@
 import "./lib/env.js";
 import { registerPublishScheduledCron } from "./jobs/schedules/publish-scheduled.js";
 import { registerAnalyticsRollupCron } from "./jobs/schedules/analytics-rollup.js";
+import { registerNewsletterDispatchCron } from "./jobs/schedules/newsletter-dispatch.js";
 
 // Import workers to register them with BullMQ
 await import("./jobs/workers/index.js");
@@ -19,6 +20,7 @@ await import("./jobs/workers/index.js");
 // Register cron jobs (idempotent — safe to call on every restart)
 await registerPublishScheduledCron();
 await registerAnalyticsRollupCron();
+await registerNewsletterDispatchCron();
 
 console.log("🔧 Worker process started");
 console.log("   - Email worker: active");
@@ -26,4 +28,5 @@ console.log("   - Image worker: active");
 console.log("   - Scheduled post worker: active");
 console.log("   - Search index worker: active");
 console.log("   - Analytics worker: active");
-console.log("   - Crons: publish-scheduled (1m), analytics-rollup (daily 03:00 UTC)");
+console.log("   - Newsletter worker: active");
+console.log("   - Crons: publish-scheduled (1m), newsletter-dispatch (1m), analytics-rollup (daily 03:00 UTC)");

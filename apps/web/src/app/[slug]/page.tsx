@@ -54,7 +54,6 @@ export default async function PostPage({ params }: PageProps) {
       {/* Cover image */}
       {post.coverImageUrl && (
         <div className="mb-8 rounded-xl overflow-hidden aspect-video">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={post.coverImageUrl}
             alt={post.title}

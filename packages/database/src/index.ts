@@ -36,6 +36,8 @@ import type {
   newsletterSends,
 } from "./schema/newsletter";
 
+import type { pageViews, postReactions, readingProgress } from "./schema/analytics";
+
 import type { siteSettings, pages, auditLogs } from "./schema/system";
 
 /** Auth */
@@ -66,6 +68,11 @@ export type NewCoupon = typeof coupons.$inferInsert;
 export type NewsletterSubscriber = typeof newsletterSubscribers.$inferSelect;
 export type Newsletter = typeof newsletters.$inferSelect;
 export type NewsletterSend = typeof newsletterSends.$inferSelect;
+
+/** Analytics */
+export type PageView = typeof pageViews.$inferSelect;
+export type PostReaction = typeof postReactions.$inferSelect;
+export type ReadingProgress = typeof readingProgress.$inferSelect;
 
 /** System */
 export type SiteSetting = typeof siteSettings.$inferSelect;

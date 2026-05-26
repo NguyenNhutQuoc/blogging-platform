@@ -1,4 +1,4 @@
-import { and, asc, count, desc, eq, isNull } from "drizzle-orm";
+import { and, asc, count, eq, isNull } from "drizzle-orm";
 import { db } from "../lib/db.js";
 import { comments, users } from "@repo/database/schema";
 import type { Comment, NewComment } from "@repo/database";
