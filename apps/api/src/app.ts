@@ -15,6 +15,8 @@ import { commentsRouter } from "./routes/v1/comments.js";
 import { searchRouter } from "./routes/v1/search.js";
 import { subscriptionsRouter } from "./routes/v1/subscriptions.js";
 import { webhooksRouter } from "./routes/v1/webhooks.js";
+import { newslettersRouter } from "./routes/v1/newsletters.js";
+import { analyticsRouter } from "./routes/v1/analytics.js";
 
 /**
  * Main Hono application.
@@ -67,6 +69,8 @@ app.route("/api/v1", commentsRouter);
 app.route("/api/v1", searchRouter);
 app.route("/api/v1", subscriptionsRouter);
 app.route("/api/v1", webhooksRouter);
+app.route("/api/v1", newslettersRouter);
+app.route("/api/v1", analyticsRouter);
 
 // ── 404 fallback ───────────────────────────────────────────────────────────
 app.notFound((c) => {

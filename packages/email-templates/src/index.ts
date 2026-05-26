@@ -5,6 +5,7 @@ import { CommentNotificationEmail } from "./templates/CommentNotificationEmail.j
 import { SubscriptionActivatedEmail } from "./templates/SubscriptionActivatedEmail.js";
 import { PaymentFailedEmail } from "./templates/PaymentFailedEmail.js";
 import { SubscriptionCanceledEmail } from "./templates/SubscriptionCanceledEmail.js";
+import { NewsletterConfirmEmail } from "./templates/NewsletterConfirmEmail.js";
 import { renderEmail } from "./render.js";
 
 export { WelcomeEmail } from "./templates/WelcomeEmail.js";
@@ -13,6 +14,7 @@ export { CommentNotificationEmail } from "./templates/CommentNotificationEmail.j
 export { SubscriptionActivatedEmail } from "./templates/SubscriptionActivatedEmail.js";
 export { PaymentFailedEmail } from "./templates/PaymentFailedEmail.js";
 export { SubscriptionCanceledEmail } from "./templates/SubscriptionCanceledEmail.js";
+export { NewsletterConfirmEmail } from "./templates/NewsletterConfirmEmail.js";
 export { renderEmail } from "./render.js";
 
 // ─── Prop types ───────────────────────────────────────────────────────────────
@@ -64,6 +66,12 @@ export interface SubscriptionCanceledEmailProps {
   siteName?: string;
 }
 
+export interface NewsletterConfirmEmailProps {
+  name?: string;
+  confirmUrl: string;
+  siteName?: string;
+}
+
 // ─── Render functions ─────────────────────────────────────────────────────────
 
 export function renderWelcomeEmail(props: WelcomeEmailProps) {
@@ -88,4 +96,8 @@ export function renderPaymentFailedEmail(props: PaymentFailedEmailProps) {
 
 export function renderSubscriptionCanceledEmail(props: SubscriptionCanceledEmailProps) {
   return renderEmail(React.createElement(SubscriptionCanceledEmail, props));
+}
+
+export function renderNewsletterConfirmEmail(props: NewsletterConfirmEmailProps) {
+  return renderEmail(React.createElement(NewsletterConfirmEmail, props));
 }

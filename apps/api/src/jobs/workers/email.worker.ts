@@ -10,12 +10,14 @@ import {
   renderSubscriptionActivatedEmail,
   renderPaymentFailedEmail,
   renderSubscriptionCanceledEmail,
+  renderNewsletterConfirmEmail,
   type WelcomeEmailProps,
   type PasswordResetEmailProps,
   type CommentNotificationEmailProps,
   type SubscriptionActivatedEmailProps,
   type PaymentFailedEmailProps,
   type SubscriptionCanceledEmailProps,
+  type NewsletterConfirmEmailProps,
 } from "@repo/email-templates";
 
 // ─── Job payload types ────────────────────────────────────────────────────────
@@ -26,7 +28,8 @@ export type EmailJobData =
   | { to: string; subject: string; template: "comment-notification"; props: CommentNotificationEmailProps }
   | { to: string; subject: string; template: "subscription-activated"; props: SubscriptionActivatedEmailProps }
   | { to: string; subject: string; template: "payment-failed"; props: PaymentFailedEmailProps }
-  | { to: string; subject: string; template: "subscription-canceled"; props: SubscriptionCanceledEmailProps };
+  | { to: string; subject: string; template: "subscription-canceled"; props: SubscriptionCanceledEmailProps }
+  | { to: string; subject: string; template: "newsletter-confirm"; props: NewsletterConfirmEmailProps };
 
 // ─── Template renderer ────────────────────────────────────────────────────────
 
@@ -44,6 +47,8 @@ async function buildEmail(data: EmailJobData): Promise<{ html: string; text: str
       return renderPaymentFailedEmail(data.props);
     case "subscription-canceled":
       return renderSubscriptionCanceledEmail(data.props);
+    case "newsletter-confirm":
+      return renderNewsletterConfirmEmail(data.props);
   }
 }
 
