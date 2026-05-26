@@ -13,6 +13,7 @@ vi.mock("../jobs/queues.js", () => ({
   searchIndexQueue: { add: vi.fn() },
   analyticsQueue: { add: vi.fn() },
   newsletterQueue: { add: vi.fn().mockResolvedValue(undefined) },
+  gdprQueue: { add: vi.fn() },
 }));
 
 vi.mock("../lib/auth.js", () => ({
