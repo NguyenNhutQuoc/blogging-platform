@@ -16,7 +16,7 @@ function getClientIp(c: Context): string {
  * Each request is recorded as a member (timestamp:random) with score = timestamp.
  * Old entries outside the window are pruned on every request.
  */
-function createRateLimiter(maxRequests: number, windowSec: number, keyPrefix: string) {
+export function createRateLimiter(maxRequests: number, windowSec: number, keyPrefix: string) {
   return createMiddleware(async (c, next) => {
     const ip = getClientIp(c);
     const key = `rl:${keyPrefix}:${ip}`;

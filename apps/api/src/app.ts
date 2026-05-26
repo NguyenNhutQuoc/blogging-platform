@@ -4,6 +4,7 @@ import { corsMiddleware } from "./middleware/cors.js";
 import { loggerMiddleware } from "./middleware/logger.js";
 import { errorHandler } from "./middleware/error-handler.js";
 import { globalRateLimit, authRateLimit } from "./middleware/rate-limit.js";
+import { securityHeaders } from "./middleware/security.js";
 import { healthRouter } from "./routes/v1/health.js";
 import { authRouter } from "./routes/v1/auth.js";
 import { postsRouter } from "./routes/v1/posts.js";
@@ -17,6 +18,8 @@ import { subscriptionsRouter } from "./routes/v1/subscriptions.js";
 import { webhooksRouter } from "./routes/v1/webhooks.js";
 import { newslettersRouter } from "./routes/v1/newsletters.js";
 import { analyticsRouter } from "./routes/v1/analytics.js";
+import { adminRouter } from "./routes/v1/admin.js";
+import { profileRouter } from "./routes/v1/profile.js";
 
 /**
  * Main Hono application.
@@ -28,6 +31,7 @@ export const app = new OpenAPIHono();
 // ── Global middleware ──────────────────────────────────────────────────────
 app.use("*", loggerMiddleware);
 app.use("*", corsMiddleware);
+app.use("*", securityHeaders);
 app.use("*", globalRateLimit);
 app.use("/api/v1/auth/*", authRateLimit);
 
@@ -71,6 +75,8 @@ app.route("/api/v1", subscriptionsRouter);
 app.route("/api/v1", webhooksRouter);
 app.route("/api/v1", newslettersRouter);
 app.route("/api/v1", analyticsRouter);
+app.route("/api/v1", adminRouter);
+app.route("/api/v1", profileRouter);
 
 // ── 404 fallback ───────────────────────────────────────────────────────────
 app.notFound((c) => {

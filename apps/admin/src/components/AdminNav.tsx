@@ -1,14 +1,24 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { Button, Separator } from "@repo/ui";
 
 interface AdminNavProps {
-  user: { name: string; email: string };
+  user: { name: string; email: string; role?: string };
 }
+
+const navLinks = [
+  { href: "/admin/posts", label: "Posts" },
+  { href: "/admin/users", label: "Users", adminOnly: true },
+  { href: "/admin/pages", label: "Pages" },
+  { href: "/admin/settings", label: "Settings", adminOnly: true },
+  { href: "/admin/audit-logs", label: "Audit Log", adminOnly: true },
+];
 
 export function AdminNav({ user }: AdminNavProps) {
   const router = useRouter();
+  const pathname = usePathname();
+  const isAdmin = user.role === "admin";
 
   async function handleSignOut() {
     await fetch("/api/auth/sign-out", { method: "POST", credentials: "include" });
@@ -20,17 +30,26 @@ export function AdminNav({ user }: AdminNavProps) {
     <header className="border-b bg-background">
       <div className="container mx-auto px-4 max-w-6xl">
         <div className="flex h-14 items-center justify-between">
-          <nav className="flex items-center gap-6 text-sm font-medium">
-            <a href="/admin" className="font-bold text-base">
+          <nav className="flex items-center gap-1 text-sm font-medium">
+            <a href="/admin" className="font-bold text-base mr-3">
               Blog Admin
             </a>
-            <Separator orientation="vertical" className="h-5" />
-            <a
-              href="/admin/posts"
-              className="text-muted-foreground hover:text-foreground transition-colors"
-            >
-              Posts
-            </a>
+            <Separator orientation="vertical" className="h-5 mr-3" />
+            {navLinks
+              .filter((l) => !l.adminOnly || isAdmin)
+              .map((link) => (
+                <a
+                  key={link.href}
+                  href={link.href}
+                  className={`px-3 py-1.5 rounded-md transition-colors ${
+                    pathname.startsWith(link.href)
+                      ? "bg-accent text-accent-foreground"
+                      : "text-muted-foreground hover:text-foreground hover:bg-accent/50"
+                  }`}
+                >
+                  {link.label}
+                </a>
+              ))}
           </nav>
 
           <div className="flex items-center gap-3 text-sm">
