@@ -7,7 +7,7 @@
     "dev": "next dev --turbopack --port 3002",
     "build": "next build",
     "start": "next start --port 3002",
-    "lint": "next lint",
+    "lint": "eslint .",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
@@ -26,6 +26,7 @@
     "tailwindcss-animate": "^1.0.7"
   },
   "devDependencies": {
+    "@repo/config-eslint": "workspace:*",
     "@repo/config-typescript": "workspace:*",
     "@tailwindcss/postcss": "^4.2.2",
     "@types/node": "^22.15.3",

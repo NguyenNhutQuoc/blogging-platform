@@ -1,4 +1,4 @@
-import { desc, eq, isNull, and, count } from "drizzle-orm";
+import { desc, eq, count } from "drizzle-orm";
 import { db } from "../lib/db.js";
 import { media } from "@repo/database/schema";
 import type { Media, NewMedia } from "@repo/database";

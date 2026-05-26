@@ -10,7 +10,7 @@ import type {
   ListSubscribersInput,
   ListNewslettersInput,
 } from "@repo/validators/newsletter";
-import type { Newsletter, NewsletterSubscriber, NewsletterSend } from "@repo/database";
+import type { Newsletter, NewsletterSubscriber } from "@repo/database";
 
 // ─── Subscribers ──────────────────────────────────────────────────────────────
 

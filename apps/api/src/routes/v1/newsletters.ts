@@ -1,6 +1,5 @@
 import { createRoute, OpenAPIHono, z } from "@hono/zod-openapi";
 import { requireAuth, requireRole } from "../../middleware/auth.js";
-import { AppError } from "../../lib/errors.js";
 import * as newsletterService from "../../services/newsletter.js";
 import {
   subscribeSchema,
