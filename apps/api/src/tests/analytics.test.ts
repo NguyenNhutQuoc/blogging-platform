@@ -18,14 +18,26 @@ vi.mock("../lib/auth.js", () => ({
   },
 }));
 
-vi.mock("../lib/redis.js", () => ({
-  redis: {
-    zadd: vi.fn().mockResolvedValue(1),
-    zremrangebyscore: vi.fn().mockResolvedValue(0),
-    expire: vi.fn().mockResolvedValue(1),
-    zcount: vi.fn().mockResolvedValue(3),
-  },
-}));
+vi.mock("../lib/redis.js", () => {
+  const pipelineMock = {
+    zremrangebyscore: vi.fn().mockReturnThis(),
+    zadd: vi.fn().mockReturnThis(),
+    zcount: vi.fn().mockReturnThis(),
+    expire: vi.fn().mockReturnThis(),
+    // ioredis pipeline results: [[err, result], ...]  index 2 = zcount result
+    exec: vi.fn().mockResolvedValue([[null, 0], [null, 1], [null, 1], [null, 1]]),
+  };
+  return {
+    redis: {
+      zadd: vi.fn().mockResolvedValue(1),
+      zremrangebyscore: vi.fn().mockResolvedValue(0),
+      expire: vi.fn().mockResolvedValue(1),
+      zcount: vi.fn().mockResolvedValue(3),
+      // Rate-limit middleware uses pipeline() on every request
+      pipeline: vi.fn().mockReturnValue(pipelineMock),
+    },
+  };
+});
 
 import { auth } from "../lib/auth.js";
 
