@@ -6,6 +6,7 @@ import * as settingsService from "../../services/settings.js";
 import * as pagesService from "../../services/pages.js";
 import * as redirectsService from "../../services/redirects.js";
 import * as commentsRepo from "../../repositories/comments.js";
+import * as mediaRepo from "../../repositories/media.js";
 import * as auditRepo from "../../repositories/audit.js";
 import {
   listUsersSchema,
@@ -385,6 +386,43 @@ router.openapi(
     const { id } = c.req.valid("param");
     await pagesService.deletePage(id, actor.id, getContext(c));
     return c.json({ success: true as const }, 200);
+  }
+);
+
+// ─── GET /admin/media ─────────────────────────────────────────────────────────
+
+router.openapi(
+  createRoute({
+    method: "get",
+    path: "/admin/media",
+    tags: ["Admin"],
+    summary: "List all uploaded media (admin)",
+    middleware: [requireAuth, requireRole("admin", "editor")] as const,
+    request: {
+      query: z.object({
+        page: z.coerce.number().int().positive().default(1),
+        pageSize: z.coerce.number().int().min(1).max(100).default(50),
+      }),
+    },
+    responses: {
+      200: {
+        content: {
+          "application/json": {
+            schema: z.object({
+              success: z.literal(true),
+              data: z.array(z.record(z.unknown())),
+              meta: z.object({ total: z.number(), page: z.number(), pageSize: z.number() }),
+            }),
+          },
+        },
+        description: "OK",
+      },
+    },
+  }),
+  async (c) => {
+    const { page, pageSize } = c.req.valid("query");
+    const result = await mediaRepo.findAllMedia(page, pageSize);
+    return c.json({ success: true as const, data: result.data, meta: { total: result.total, page, pageSize } }, 200);
   }
 );
 

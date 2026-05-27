@@ -16,7 +16,7 @@ async function fetchMedia(): Promise<MediaItem[]> {
   try {
     const cookieStore = await cookies();
     const API_URL = process.env.API_URL ?? "http://localhost:3003";
-    const res = await fetch(`${API_URL}/api/v1/media?pageSize=100`, {
+    const res = await fetch(`${API_URL}/api/v1/admin/media?pageSize=100`, {
       headers: { Cookie: cookieStore.toString() },
       cache: "no-store",
     });
