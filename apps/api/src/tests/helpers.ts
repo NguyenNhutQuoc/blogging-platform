@@ -33,7 +33,7 @@ export async function createTestCategory(overrides: {
   slug?: string;
 } = {}): Promise<Category> {
   const id = uuidv7();
-  const slug = overrides.slug ?? `category-${id.slice(0, 8)}`;
+  const slug = overrides.slug ?? `category-${id.slice(-8)}`;
   const [category] = await testDb
     .insert(categories)
     .values({
@@ -52,7 +52,7 @@ export async function createTestTag(overrides: {
   slug?: string;
 } = {}): Promise<Tag> {
   const id = uuidv7();
-  const slug = overrides.slug ?? `tag-${id.slice(0, 8)}`;
+  const slug = overrides.slug ?? `tag-${id.slice(-8)}`;
   const [tag] = await testDb
     .insert(tags)
     .values({
@@ -89,7 +89,7 @@ export async function createTestPost(
       id,
       authorId,
       title: rest.title ?? "Test Post",
-      slug: rest.slug ?? `test-post-${id.slice(0, 8)}`,
+      slug: rest.slug ?? `test-post-${id.slice(-8)}`,
       content: rest.content ?? "<p>Test content</p>",
       status: rest.status ?? "draft",
       visibility: rest.visibility ?? "free",

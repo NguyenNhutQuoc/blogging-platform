@@ -183,8 +183,13 @@ router.openapi(getPostRoute, async (c) => {
   const { slug } = c.req.valid("param");
   // Optional auth — authenticated users can access paid content if subscribed
   const session = await auth.api.getSession({ headers: c.req.raw.headers });
-  const viewerId = session?.user?.id;
-  const post = await postsService.getPostBySlug(slug, viewerId);
+  const viewer = session?.user
+    ? {
+        id: session.user.id,
+        role: (session.user as any).role as "admin" | "editor" | "author" | "subscriber",
+      }
+    : undefined;
+  const post = await postsService.getPostBySlug(slug, viewer);
   return c.json({ success: true as const, data: serializePost(post) }, 200);
 });
 

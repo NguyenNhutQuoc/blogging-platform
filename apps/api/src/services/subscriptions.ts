@@ -44,8 +44,8 @@ export async function resolveUserVisibilityTier(
   if (!result) return "free";
 
   const { plan } = result;
-  if (plan.slug === "premium") return "premium";
-  if (plan.slug === "pro") return "pro";
+  if (plan.slug.startsWith("premium")) return "premium";
+  if (plan.slug.startsWith("pro")) return "pro";
   return "free";
 }
 

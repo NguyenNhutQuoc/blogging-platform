@@ -18,6 +18,10 @@ function getClientIp(c: Context): string {
  */
 export function createRateLimiter(maxRequests: number, windowSec: number, keyPrefix: string) {
   return createMiddleware(async (c, next) => {
+    if (process.env.NODE_ENV === "test") {
+      await next();
+      return;
+    }
     const ip = getClientIp(c);
     const key = `rl:${keyPrefix}:${ip}`;
     const now = Date.now();

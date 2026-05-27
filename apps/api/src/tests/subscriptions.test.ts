@@ -436,6 +436,50 @@ describe("GET /api/v1/posts/:slug — content gating", () => {
     const res = await app.request(`/api/v1/posts/${post.slug}`);
     expect(res.status).toBe(402);
   });
+
+  it("returns 200 for pro post when viewer is admin (bypasses gating)", async () => {
+    const author = await createTestUser({ role: "author" });
+    const post = await createTestPost(author.id, {
+      status: "published",
+      visibility: "pro",
+      publishedAt: new Date(),
+    });
+
+    const admin = await createTestUser({ role: "admin" });
+    mockAuth({ id: admin.id, role: admin.role, email: admin.email, name: admin.name });
+
+    const res = await app.request(`/api/v1/posts/${post.slug}`);
+    expect(res.status).toBe(200);
+  });
+
+  it("returns 200 for pro post when viewer is editor (bypasses gating)", async () => {
+    const author = await createTestUser({ role: "author" });
+    const post = await createTestPost(author.id, {
+      status: "published",
+      visibility: "pro",
+      publishedAt: new Date(),
+    });
+
+    const editor = await createTestUser({ role: "editor" });
+    mockAuth({ id: editor.id, role: editor.role, email: editor.email, name: editor.name });
+
+    const res = await app.request(`/api/v1/posts/${post.slug}`);
+    expect(res.status).toBe(200);
+  });
+
+  it("returns 200 for pro post when viewer is the post author (bypasses gating)", async () => {
+    const author = await createTestUser({ role: "author" });
+    const post = await createTestPost(author.id, {
+      status: "published",
+      visibility: "pro",
+      publishedAt: new Date(),
+    });
+
+    mockAuth({ id: author.id, role: author.role, email: author.email, name: author.name });
+
+    const res = await app.request(`/api/v1/posts/${post.slug}`);
+    expect(res.status).toBe(200);
+  });
 });
 
 // ─── Stripe webhook ───────────────────────────────────────────────────────────

@@ -68,18 +68,27 @@ export async function listPosts(input: ListPostsInput) {
 
 /**
  * Public post lookup — enforces visibility gating.
- * Pass viewerId to unlock pro/premium posts for paid subscribers.
+ * Pass viewer to unlock pro/premium posts for paid subscribers, authors, and staff.
  */
-export async function getPostBySlug(slug: string, viewerId?: string) {
+export async function getPostBySlug(
+  slug: string,
+  viewer?: { id: string; role: "admin" | "editor" | "author" | "subscriber" }
+) {
   const post = await postsRepo.findPostBySlug(slug);
   if (!post) throw AppError.notFound(`Post "${slug}" not found`);
 
   const visibility = post.visibility as "free" | "pro" | "premium";
   if (visibility !== "free") {
-    const tier = await resolveUserVisibilityTier(viewerId);
-    const tierRank = { free: 0, pro: 1, premium: 2 } as const;
-    if (tierRank[tier] < tierRank[visibility]) {
-      throw AppError.paymentRequired();
+    // Staff (admin/editor) and the post's author bypass visibility gating
+    const isAuthorizedStaff = viewer && (viewer.role === "admin" || viewer.role === "editor");
+    const isAuthor = viewer && viewer.id === post.authorId;
+
+    if (!isAuthorizedStaff && !isAuthor) {
+      const tier = await resolveUserVisibilityTier(viewer?.id);
+      const tierRank = { free: 0, pro: 1, premium: 2 } as const;
+      if (tierRank[tier] < tierRank[visibility]) {
+        throw AppError.paymentRequired();
+      }
     }
   }
 
