@@ -38,7 +38,7 @@ import type {
 
 import type { pageViews, postReactions, readingProgress } from "./schema/analytics";
 
-import type { siteSettings, pages, auditLogs } from "./schema/system";
+import type { siteSettings, pages, auditLogs, redirects } from "./schema/system";
 
 /** Auth */
 export type User = typeof users.$inferSelect;
@@ -78,6 +78,7 @@ export type ReadingProgress = typeof readingProgress.$inferSelect;
 export type SiteSetting = typeof siteSettings.$inferSelect;
 export type Page = typeof pages.$inferSelect;
 export type AuditLog = typeof auditLogs.$inferSelect;
+export type Redirect = typeof redirects.$inferSelect;
 
 // ─── Inferred types — insert (write) ─────────────────────────────────────────
 // Use these for INSERT parameters (id/timestamps are optional).

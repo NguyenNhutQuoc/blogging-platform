@@ -10,7 +10,11 @@ interface AdminNavProps {
 const navLinks = [
   { href: "/admin/posts", label: "Posts" },
   { href: "/admin/users", label: "Users", adminOnly: true },
+  { href: "/admin/comments", label: "Comments" },
+  { href: "/admin/media", label: "Media" },
+  { href: "/admin/categories", label: "Categories" },
   { href: "/admin/pages", label: "Pages" },
+  { href: "/admin/redirects", label: "Redirects", adminOnly: true },
   { href: "/admin/settings", label: "Settings", adminOnly: true },
   { href: "/admin/audit-logs", label: "Audit Log", adminOnly: true },
 ];

@@ -4,6 +4,8 @@ import { requireAuth, requireRole } from "../../middleware/auth.js";
 import * as userService from "../../services/users.js";
 import * as settingsService from "../../services/settings.js";
 import * as pagesService from "../../services/pages.js";
+import * as redirectsService from "../../services/redirects.js";
+import * as commentsRepo from "../../repositories/comments.js";
 import * as auditRepo from "../../repositories/audit.js";
 import {
   listUsersSchema,
@@ -13,6 +15,8 @@ import {
   upsertSettingsSchema,
   createPageSchema,
   updatePageSchema,
+  createRedirectSchema,
+  updateRedirectSchema,
 } from "@repo/validators/admin";
 
 type Env = { Variables: { user: { id: string; role: string; email: string; name: string }; session: Record<string, unknown> } };
@@ -380,6 +384,140 @@ router.openapi(
     const actor = c.get("user");
     const { id } = c.req.valid("param");
     await pagesService.deletePage(id, actor.id, getContext(c));
+    return c.json({ success: true as const }, 200);
+  }
+);
+
+// ─── GET /admin/comments ─────────────────────────────────────────────────────
+
+router.openapi(
+  createRoute({
+    method: "get",
+    path: "/admin/comments",
+    tags: ["Admin"],
+    summary: "List all comments across posts (admin moderation queue)",
+    middleware: [requireAuth, requireRole("admin", "editor")] as const,
+    request: {
+      query: z.object({
+        status: z.enum(["pending", "approved", "spam", "deleted"]).optional(),
+        page: z.coerce.number().int().positive().default(1),
+        pageSize: z.coerce.number().int().min(1).max(100).default(20),
+      }),
+    },
+    responses: {
+      200: {
+        content: {
+          "application/json": {
+            schema: z.object({
+              success: z.literal(true),
+              data: z.array(z.record(z.unknown())),
+              meta: z.object({ total: z.number(), page: z.number(), pageSize: z.number() }),
+            }),
+          },
+        },
+        description: "OK",
+      },
+    },
+  }),
+  async (c) => {
+    const { status, page, pageSize } = c.req.valid("query");
+    const result = await commentsRepo.findAllComments({ status, page, pageSize });
+    return c.json({ success: true as const, data: result.data, meta: { total: result.total, page, pageSize } }, 200);
+  }
+);
+
+// ─── Redirects ────────────────────────────────────────────────────────────────
+
+const redirectSchema = z.object({
+  id: z.string(),
+  fromPath: z.string(),
+  toPath: z.string(),
+  statusCode: z.number(),
+  isActive: z.boolean(),
+  createdAt: z.string(),
+});
+
+function serializeRedirect(r: Awaited<ReturnType<typeof redirectsService.createRedirect>>) {
+  return { ...r, createdAt: r.createdAt.toISOString() };
+}
+
+router.openapi(
+  createRoute({
+    method: "get",
+    path: "/admin/redirects",
+    tags: ["Admin"],
+    summary: "List all redirects (admin)",
+    middleware: [requireAuth, requireRole("admin")] as const,
+    responses: {
+      200: { content: { "application/json": { schema: z.object({ success: z.literal(true), data: z.array(redirectSchema) }) } }, description: "OK" },
+    },
+  }),
+  async (c) => {
+    const list = await redirectsService.listRedirects();
+    return c.json({ success: true as const, data: list.map(serializeRedirect) }, 200);
+  }
+);
+
+router.openapi(
+  createRoute({
+    method: "post",
+    path: "/admin/redirects",
+    tags: ["Admin"],
+    summary: "Create redirect (admin)",
+    middleware: [requireAuth, requireRole("admin")] as const,
+    request: { body: { content: { "application/json": { schema: createRedirectSchema } } } },
+    responses: {
+      201: { content: { "application/json": { schema: z.object({ success: z.literal(true), data: redirectSchema }) } }, description: "Created" },
+    },
+  }),
+  async (c) => {
+    const actor = c.get("user");
+    const body = c.req.valid("json");
+    const redirect = await redirectsService.createRedirect(body, actor.id, getContext(c));
+    return c.json({ success: true as const, data: serializeRedirect(redirect) }, 201);
+  }
+);
+
+router.openapi(
+  createRoute({
+    method: "patch",
+    path: "/admin/redirects/{id}",
+    tags: ["Admin"],
+    summary: "Update redirect (admin)",
+    middleware: [requireAuth, requireRole("admin")] as const,
+    request: {
+      params: z.object({ id: z.string() }),
+      body: { content: { "application/json": { schema: updateRedirectSchema } } },
+    },
+    responses: {
+      200: { content: { "application/json": { schema: z.object({ success: z.literal(true), data: redirectSchema }) } }, description: "OK" },
+    },
+  }),
+  async (c) => {
+    const actor = c.get("user");
+    const { id } = c.req.valid("param");
+    const body = c.req.valid("json");
+    const redirect = await redirectsService.updateRedirect(id, body, actor.id, getContext(c));
+    return c.json({ success: true as const, data: serializeRedirect(redirect) }, 200);
+  }
+);
+
+router.openapi(
+  createRoute({
+    method: "delete",
+    path: "/admin/redirects/{id}",
+    tags: ["Admin"],
+    summary: "Delete redirect (admin)",
+    middleware: [requireAuth, requireRole("admin")] as const,
+    request: { params: z.object({ id: z.string() }) },
+    responses: {
+      200: { content: { "application/json": { schema: z.object({ success: z.literal(true) }) } }, description: "Deleted" },
+    },
+  }),
+  async (c) => {
+    const actor = c.get("user");
+    const { id } = c.req.valid("param");
+    await redirectsService.deleteRedirect(id, actor.id, getContext(c));
     return c.json({ success: true as const }, 200);
   }
 );

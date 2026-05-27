@@ -52,3 +52,17 @@ export const updatePageSchema = createPageSchema.partial();
 
 export type CreatePageInput = z.infer<typeof createPageSchema>;
 export type UpdatePageInput = z.infer<typeof updatePageSchema>;
+
+// ─── Redirects ────────────────────────────────────────────────────────────────
+
+export const createRedirectSchema = z.object({
+  fromPath: z.string().min(1).max(500).startsWith("/", "Must start with /"),
+  toPath: z.string().min(1).max(500),
+  statusCode: z.union([z.literal(301), z.literal(302)]).default(301),
+  isActive: z.boolean().default(true),
+});
+
+export const updateRedirectSchema = createRedirectSchema.partial();
+
+export type CreateRedirectInput = z.infer<typeof createRedirectSchema>;
+export type UpdateRedirectInput = z.infer<typeof updateRedirectSchema>;
