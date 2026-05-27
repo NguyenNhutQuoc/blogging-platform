@@ -19,6 +19,7 @@ vi.mock("../jobs/queues.js", () => ({
   searchIndexQueue: { add: vi.fn() },
   analyticsQueue: { add: vi.fn() },
   newsletterQueue: { add: vi.fn() },
+  gdprQueue: { add: vi.fn() },
 }));
 
 // Mock Better Auth so tests control session state

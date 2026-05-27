@@ -19,6 +19,7 @@ export const QUEUE_NAMES = {
   IMAGE: "image-queue",
   SEARCH_INDEX: "search-index-queue",
   ANALYTICS: "analytics-queue",
+  GDPR: "gdpr-queue",
 } as const;
 
 export type QueueName = (typeof QUEUE_NAMES)[keyof typeof QUEUE_NAMES];

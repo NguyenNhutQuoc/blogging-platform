@@ -8,6 +8,15 @@ export async function findMediaById(id: string): Promise<Media | null> {
   return row ?? null;
 }
 
+export async function findAllMedia(page = 1, pageSize = 50) {
+  const offset = (page - 1) * pageSize;
+  const [totalResult, rows] = await Promise.all([
+    db.select({ total: count() }).from(media),
+    db.select().from(media).orderBy(desc(media.createdAt)).limit(pageSize).offset(offset),
+  ]);
+  return { data: rows, total: totalResult[0]?.total ?? 0 };
+}
+
 export async function findMediaByUploader(uploaderId: string, page = 1, pageSize = 20) {
   const offset = (page - 1) * pageSize;
   const [totalResult, rows] = await Promise.all([

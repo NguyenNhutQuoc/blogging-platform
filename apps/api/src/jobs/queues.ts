@@ -79,3 +79,14 @@ export const analyticsQueue = new Queue(QUEUE_NAMES.ANALYTICS, {
     removeOnFail: { count: 30 },
   },
 });
+
+/** GDPR jobs — hard-delete accounts after 30-day grace period */
+export const gdprQueue = new Queue(QUEUE_NAMES.GDPR, {
+  connection,
+  defaultJobOptions: {
+    attempts: 3,
+    backoff: { type: "exponential", delay: 5000 },
+    removeOnComplete: { count: 50 },
+    removeOnFail: { count: 50 },
+  },
+});

@@ -6,9 +6,21 @@ vi.mock("../lib/db.js", () => ({
   db: { execute: vi.fn().mockResolvedValue([]) },
 }));
 
-vi.mock("../lib/redis.js", () => ({
-  redis: { ping: vi.fn().mockResolvedValue("PONG") },
-}));
+vi.mock("../lib/redis.js", () => {
+  const pipelineMock = {
+    zremrangebyscore: vi.fn().mockReturnThis(),
+    zadd: vi.fn().mockReturnThis(),
+    zcount: vi.fn().mockReturnThis(),
+    expire: vi.fn().mockReturnThis(),
+    exec: vi.fn().mockResolvedValue([[null, 0], [null, 1], [null, 1], [null, 1]]),
+  };
+  return {
+    redis: {
+      ping: vi.fn().mockResolvedValue("PONG"),
+      pipeline: vi.fn().mockReturnValue(pipelineMock),
+    },
+  };
+});
 
 interface HealthBody {
   status: "ok" | "degraded";

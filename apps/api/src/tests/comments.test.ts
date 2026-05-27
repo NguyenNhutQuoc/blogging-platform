@@ -9,6 +9,7 @@ vi.mock("../jobs/queues.js", () => ({
   searchIndexQueue: { add: vi.fn() },
   analyticsQueue: { add: vi.fn() },
   newsletterQueue: { add: vi.fn() },
+  gdprQueue: { add: vi.fn() },
 }));
 
 vi.mock("../lib/auth.js", () => ({

@@ -12,7 +12,8 @@
     "./pagination": "./src/pagination.ts",
     "./subscription": "./src/subscription.ts",
     "./newsletter": "./src/newsletter.ts",
-    "./analytics": "./src/analytics.ts"
+    "./analytics": "./src/analytics.ts",
+    "./admin": "./src/admin.ts"
   },
   "dependencies": {
     "zod": "^3.25.0",

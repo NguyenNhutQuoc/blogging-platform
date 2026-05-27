@@ -4,3 +4,4 @@ export * from "./comment.js";
 export * from "./media.js";
 export * from "./pagination.js";
 export * from "./subscription.js";
+export * from "./admin.js";

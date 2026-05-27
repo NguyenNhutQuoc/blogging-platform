@@ -1,4 +1,4 @@
-import { and, asc, count, eq, isNull } from "drizzle-orm";
+import { and, asc, count, desc, eq, isNull } from "drizzle-orm";
 import { db } from "../lib/db.js";
 import { comments, users } from "@repo/database/schema";
 import type { Comment, NewComment } from "@repo/database";
@@ -28,6 +28,39 @@ export async function findCommentsByPost(filter: FindCommentsFilter) {
       .leftJoin(users, eq(comments.authorId, users.id))
       .where(where)
       .orderBy(asc(comments.createdAt))
+      .limit(pageSize)
+      .offset(offset),
+  ]);
+
+  return {
+    data: rows.map(({ comment, author }) => ({ ...comment, author })),
+    total: totalResult[0]?.total ?? 0,
+  };
+}
+
+export async function findAllComments(filter: {
+  status?: "pending" | "approved" | "spam" | "deleted";
+  page: number;
+  pageSize: number;
+}) {
+  const { status, page, pageSize } = filter;
+  const offset = (page - 1) * pageSize;
+  const where = and(
+    isNull(comments.deletedAt),
+    status ? eq(comments.status, status) : undefined
+  );
+
+  const [totalResult, rows] = await Promise.all([
+    db.select({ total: count() }).from(comments).where(where),
+    db
+      .select({
+        comment: comments,
+        author: { id: users.id, name: users.name, avatarUrl: users.avatarUrl },
+      })
+      .from(comments)
+      .leftJoin(users, eq(comments.authorId, users.id))
+      .where(where)
+      .orderBy(desc(comments.createdAt))
       .limit(pageSize)
       .offset(offset),
   ]);

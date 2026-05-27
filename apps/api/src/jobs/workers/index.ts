@@ -11,3 +11,4 @@ export { imageWorker } from "./image.worker.js";
 export { searchIndexWorker } from "./search-index.worker.js";
 export { analyticsWorker } from "./analytics.worker.js";
 export { newsletterWorker } from "./newsletter.worker.js";
+export { gdprWorker } from "./gdpr.worker.js";
