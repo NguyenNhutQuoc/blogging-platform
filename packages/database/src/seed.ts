@@ -6,8 +6,19 @@ import { fileURLToPath } from "url";
 const __dirname = fileURLToPath(new URL(".", import.meta.url));
 dotenv.config({ path: resolve(__dirname, "../../../.env") });
 import { createDbClient } from "./client";
-import { users, categories, tags, subscriptionPlans, pages, siteSettings } from "./schema/index";
+import { users, accounts, categories, tags, subscriptionPlans, pages, siteSettings } from "./schema/index";
 import { uuidv7 } from "uuidv7";
+import { scryptAsync } from "@noble/hashes/scrypt";
+import { hex } from "@noble/hashes/utils";
+
+async function hashPassword(password: string): Promise<string> {
+  const salt = hex.encode(crypto.getRandomValues(new Uint8Array(16)));
+  const key = await scryptAsync(password.normalize("NFKC"), salt, {
+    N: 16384, r: 16, p: 1, dkLen: 64,
+    maxmem: 128 * 16384 * 16 * 2,
+  });
+  return `${salt}:${hex.encode(key)}`;
+}
 
 const db = createDbClient(process.env.DATABASE_URL!);
 
@@ -60,6 +71,26 @@ async function seed() {
       },
     ])
     .onConflictDoNothing();
+
+  // ── Credentials (email + password) ────────────────────────────────────
+  console.log("  → Credentials");
+  const seedUsers = [
+    { id: "01900000-0000-7000-8000-000000000001", email: "admin@example.com", password: "Admin1234!" },
+    { id: "01900000-0000-7000-8000-000000000002", email: "author1@example.com", password: "Author1234!" },
+    { id: "01900000-0000-7000-8000-000000000003", email: "author2@example.com", password: "Author1234!" },
+  ];
+  for (const u of seedUsers) {
+    await db
+      .insert(accounts)
+      .values({
+        id: uuidv7(),
+        userId: u.id,
+        provider: "credential",
+        providerAccountId: u.id,
+        password: await hashPassword(u.password),
+      })
+      .onConflictDoNothing();
+  }
 
   // ── Categories ─────────────────────────────────────────────────────────
   console.log("  → Categories");

@@ -69,6 +69,7 @@ export const accounts = pgTable(
     accessToken: text("access_token"),
     refreshToken: text("refresh_token"),
     expiresAt: timestamp("expires_at", { withTimezone: true }),
+    password: text("password"),
     ...timestamps,
   },
   (t) => [
