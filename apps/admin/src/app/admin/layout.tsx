@@ -37,7 +37,7 @@ async function getSession(): Promise<SessionData | null> {
     const cookieHeader = cookieStore.toString();
 
     const API_URL = process.env.API_URL ?? "http://localhost:3003";
-    const res = await fetch(`${API_URL}/api/auth/get-session`, {
+    const res = await fetch(`${API_URL}/api/v1/auth/get-session`, {
       headers: { Cookie: cookieHeader },
       cache: "no-store",
     });
