@@ -20,7 +20,7 @@ export async function createTestUser(overrides: {
       name: overrides.name ?? "Test User",
       role: overrides.role ?? "author",
       status: "active",
-      emailVerifiedAt: new Date(),
+      emailVerified: true,
     })
     .returning();
   return user!;

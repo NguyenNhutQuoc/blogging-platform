@@ -6,6 +6,7 @@ import {
   pgEnum,
   index,
   uniqueIndex,
+  boolean,
 } from "drizzle-orm/pg-core";
 import { primaryId, timestamps, softDelete } from "./helpers";
 
@@ -21,7 +22,7 @@ export const users = pgTable(
     avatarUrl: text("avatar_url"),
     bio: text("bio"),
     role: userRoleEnum("role").notNull().default("subscriber"),
-    emailVerifiedAt: timestamp("email_verified_at", { withTimezone: true }),
+    emailVerified: boolean("email_verified").notNull().default(false),
     status: userStatusEnum("status").notNull().default("active"),
     /** Flexible metadata bag — stores provider-specific data, preferences, etc. */
     metadata: jsonb("metadata"),
@@ -69,6 +70,7 @@ export const accounts = pgTable(
     accessToken: text("access_token"),
     refreshToken: text("refresh_token"),
     expiresAt: timestamp("expires_at", { withTimezone: true }),
+    password: text("password"),
     ...timestamps,
   },
   (t) => [
