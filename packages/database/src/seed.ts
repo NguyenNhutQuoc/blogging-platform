@@ -38,7 +38,7 @@ async function seed() {
         role: "admin",
         status: "active",
         bio: "Platform administrator",
-        emailVerifiedAt: new Date(),
+        emailVerified: true,
       },
       {
         id: "01900000-0000-7000-8000-000000000002",
@@ -47,7 +47,7 @@ async function seed() {
         role: "author",
         status: "active",
         bio: "Passionate about technology and open source.",
-        emailVerifiedAt: new Date(),
+        emailVerified: true,
       },
       {
         id: "01900000-0000-7000-8000-000000000003",
@@ -56,7 +56,7 @@ async function seed() {
         role: "author",
         status: "active",
         bio: "Full-stack developer, coffee enthusiast.",
-        emailVerifiedAt: new Date(),
+        emailVerified: true,
       },
     ])
     .onConflictDoNothing();

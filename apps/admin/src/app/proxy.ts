@@ -39,8 +39,20 @@ export async function proxyRequest(
   responseHeaders.delete("connection");
   responseHeaders.delete("transfer-encoding");
 
-  return new NextResponse(response.body, {
+  // `new Headers()` collapses multiple Set-Cookie headers into one comma-joined
+  // value, which corrupts auth cookies (their Expires date itself contains a
+  // comma). Re-emit each Set-Cookie individually so the session cookie survives.
+  const setCookies = response.headers.getSetCookie();
+  responseHeaders.delete("set-cookie");
+
+  const proxied = new NextResponse(response.body, {
     status: response.status,
     headers: responseHeaders,
   });
+
+  for (const cookie of setCookies) {
+    proxied.headers.append("set-cookie", cookie);
+  }
+
+  return proxied;
 }

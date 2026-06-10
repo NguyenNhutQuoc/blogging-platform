@@ -25,7 +25,7 @@ export function AdminNav({ user }: AdminNavProps) {
   const isAdmin = user.role === "admin";
 
   async function handleSignOut() {
-    await fetch("/api/auth/sign-out", { method: "POST", credentials: "include" });
+    await fetch("/api/v1/auth/sign-out", { method: "POST", credentials: "include" });
     router.push("/login");
     router.refresh();
   }

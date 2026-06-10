@@ -15,6 +15,20 @@
       "when": 1779808058239,
       "tag": "0001_late_shape",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1780208349166,
+      "tag": "0002_stiff_shriek",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1780208359000,
+      "tag": "0003_email_verified",
+      "breakpoints": true
     }
   ]
 }

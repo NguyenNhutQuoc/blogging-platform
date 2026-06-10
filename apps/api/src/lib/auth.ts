@@ -27,6 +27,22 @@ export const auth = betterAuth({
       verification: schema.verificationTokens,
     },
   }),
+  user: {
+    fields: {
+      image: "avatarUrl",
+    },
+  },
+  account: {
+    fields: {
+      providerId: "provider",
+      accountId: "providerAccountId",
+    },
+  },
+  verification: {
+    fields: {
+      value: "token",
+    },
+  },
   emailAndPassword: {
     enabled: true,
     requireEmailVerification: false, // Set to true in production
