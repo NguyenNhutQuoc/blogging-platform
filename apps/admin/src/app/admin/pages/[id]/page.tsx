@@ -1,5 +1,6 @@
 import { cookies } from "next/headers";
 import { notFound } from "next/navigation";
+import { PageHeader } from "@/components/PageHeader";
 import { PageEditForm } from "./PageEditForm";
 
 interface Page {
@@ -32,8 +33,8 @@ export default async function PageEditPage({ params }: { params: Promise<{ id: s
   if (!page) notFound();
 
   return (
-    <div className="space-y-6 max-w-2xl">
-      <h1 className="text-2xl font-bold">Edit Page</h1>
+    <div className="max-w-2xl space-y-5">
+      <PageHeader title="Edit page" description={`/${page.slug}`} />
       <PageEditForm page={page} />
     </div>
   );

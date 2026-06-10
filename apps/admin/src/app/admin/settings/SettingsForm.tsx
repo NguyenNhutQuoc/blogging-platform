@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Button, Input } from "@repo/ui";
+import { Button, Input, Label } from "@repo/ui";
 
 interface SettingsFormProps {
   settings: Record<string, unknown>;
@@ -39,35 +39,37 @@ export function SettingsForm({ settings }: SettingsFormProps) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4 max-w-lg">
-      {FIELDS.map((field) => (
-        <div key={field.key} className="space-y-1">
-          <label className="text-sm font-medium">{field.label}</label>
-          <Input
-            type={field.type}
-            value={values[field.key] ?? ""}
-            onChange={(e) => setValues((v) => ({ ...v, [field.key]: e.target.value }))}
-            placeholder={field.placeholder}
-          />
-        </div>
-      ))}
+    <form onSubmit={handleSubmit}>
+      <div className="space-y-4 p-4">
+        {FIELDS.map((field) => (
+          <div key={field.key} className="space-y-1.5">
+            <Label>{field.label}</Label>
+            <Input
+              type={field.type}
+              value={values[field.key] ?? ""}
+              onChange={(e) => setValues((v) => ({ ...v, [field.key]: e.target.value }))}
+              placeholder={field.placeholder}
+            />
+          </div>
+        ))}
 
-      <div className="flex items-center gap-4">
-        <label className="flex items-center gap-2 text-sm cursor-pointer">
-          <input type="checkbox" checked={allowComments} onChange={(e) => setAllowComments(e.target.checked)} className="rounded" />
-          Allow comments
-        </label>
-        <label className="flex items-center gap-2 text-sm cursor-pointer">
-          <input type="checkbox" checked={allowRegistration} onChange={(e) => setAllowRegistration(e.target.checked)} className="rounded" />
-          Allow registration
-        </label>
+        <div className="flex items-center gap-4">
+          <label className="flex cursor-pointer items-center gap-2 text-sm">
+            <input type="checkbox" checked={allowComments} onChange={(e) => setAllowComments(e.target.checked)} className="rounded" />
+            Allow comments
+          </label>
+          <label className="flex cursor-pointer items-center gap-2 text-sm">
+            <input type="checkbox" checked={allowRegistration} onChange={(e) => setAllowRegistration(e.target.checked)} className="rounded" />
+            Allow registration
+          </label>
+        </div>
       </div>
 
-      <div className="flex items-center gap-3 pt-2">
-        <Button type="submit" disabled={saving}>
-          {saving ? "Saving…" : "Save Settings"}
+      <div className="flex items-center gap-3 border-t bg-muted/40 px-4 py-3">
+        <Button type="submit" size="sm" disabled={saving}>
+          {saving ? "Saving…" : "Save settings"}
         </Button>
-        {saved && <span className="text-sm text-green-600 font-medium">Saved!</span>}
+        {saved && <span className="text-sm font-medium text-emerald-600 dark:text-emerald-400">Saved!</span>}
       </div>
     </form>
   );

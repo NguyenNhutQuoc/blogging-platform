@@ -35,7 +35,7 @@ export function ModerateCommentButtons({
         <Button
           size="sm"
           variant="outline"
-          className="h-7 px-2 text-xs text-green-700 border-green-200 hover:bg-green-50"
+          className="h-7 px-2 text-xs text-emerald-600 dark:text-emerald-400"
           onClick={() => moderate("approved")}
           disabled={!!loading}
         >
@@ -46,7 +46,7 @@ export function ModerateCommentButtons({
         <Button
           size="sm"
           variant="outline"
-          className="h-7 px-2 text-xs text-orange-700 border-orange-200 hover:bg-orange-50"
+          className="h-7 px-2 text-xs text-amber-600 dark:text-amber-400"
           onClick={() => moderate("spam")}
           disabled={!!loading}
         >

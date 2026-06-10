@@ -1,18 +1,11 @@
 "use client";
 
-import { useState, useCallback, type FormEvent } from "react";
+import { useState, useCallback, type FormEvent, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
-import {
-  Button,
-  Input,
-  Label,
-  Textarea,
-  Card,
-  CardContent,
-  CardHeader,
-  Badge,
-} from "@repo/ui";
+import { ChevronDown, ChevronRight } from "lucide-react";
+import { Button, Input, Label, Textarea } from "@repo/ui";
 import { TiptapEditor, type TiptapOutput } from "./TiptapEditor";
+import { StatusBadge } from "./StatusBadge";
 import type { PostDetail } from "@repo/api-client";
 
 interface PostFormProps {
@@ -29,6 +22,15 @@ interface FormState {
   seoDescription: string;
   seoCanonicalUrl: string;
   scheduledAt: string;
+}
+
+function Section({ title, children }: { title: ReactNode; children: ReactNode }) {
+  return (
+    <div className="rounded-lg border">
+      <div className="border-b px-4 py-2.5 text-sm font-medium">{title}</div>
+      <div className="space-y-3 p-4">{children}</div>
+    </div>
+  );
 }
 
 /**
@@ -155,9 +157,9 @@ export function PostForm({ post }: PostFormProps) {
 
   return (
     <form onSubmit={handleFormSubmit} className="space-y-6">
-      <div className="grid gap-6 lg:grid-cols-[1fr_280px]">
+      <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
         {/* Main content */}
-        <div className="space-y-4">
+        <div className="min-w-0 space-y-4">
           <div className="space-y-1.5">
             <Label htmlFor="title">Title</Label>
             <Input
@@ -166,7 +168,7 @@ export function PostForm({ post }: PostFormProps) {
               onChange={(e) => handleTitleChange(e.target.value)}
               placeholder="Post title"
               required
-              className="text-xl h-12"
+              className="h-11 text-lg font-medium"
             />
           </div>
 
@@ -194,117 +196,104 @@ export function PostForm({ post }: PostFormProps) {
 
         {/* Sidebar */}
         <div className="space-y-4">
-          {/* Status */}
-          <Card>
-            <CardHeader className="pb-2">
-              <h3 className="font-semibold text-sm">Status</h3>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              {post && (
-                <div className="flex items-center gap-2">
-                  <span className="text-xs text-muted-foreground">Current:</span>
-                  <Badge variant={post.status === "published" ? "default" : "secondary"}>
-                    {post.status}
-                  </Badge>
-                </div>
-              )}
+          <Section
+            title={
+              <span className="flex items-center justify-between">
+                Status
+                {post && <StatusBadge status={post.status} />}
+              </span>
+            }
+          >
+            {error && <p className="text-xs text-destructive">{error}</p>}
 
-              {error && <p className="text-xs text-destructive">{error}</p>}
+            <div className="flex flex-col gap-2">
+              <Button
+                type="button"
+                size="sm"
+                disabled={saving}
+                onClick={() => void submit("publish")}
+              >
+                {saving ? "Saving…" : post?.status === "published" ? "Update" : "Publish"}
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                disabled={saving}
+                onClick={() => void submit("draft")}
+              >
+                Save draft
+              </Button>
+            </div>
 
-              <div className="flex flex-col gap-2">
+            <button
+              type="button"
+              className="text-xs text-muted-foreground hover:text-foreground"
+              onClick={() => setShowSchedule(!showSchedule)}
+            >
+              {showSchedule ? "Hide schedule" : "Schedule…"}
+            </button>
+            {showSchedule && (
+              <div className="space-y-2">
+                <Input
+                  type="datetime-local"
+                  value={form.scheduledAt}
+                  onChange={(e) => setField("scheduledAt", e.target.value)}
+                  className="text-xs"
+                />
                 <Button
                   type="button"
                   variant="outline"
                   size="sm"
-                  disabled={saving}
-                  onClick={() => void submit("draft")}
+                  className="w-full"
+                  disabled={saving || !form.scheduledAt}
+                  onClick={() => void submit("schedule")}
                 >
-                  Save draft
-                </Button>
-                <Button
-                  type="button"
-                  size="sm"
-                  disabled={saving}
-                  onClick={() => void submit("publish")}
-                >
-                  {saving ? "Saving…" : post?.status === "published" ? "Update" : "Publish"}
+                  Schedule post
                 </Button>
               </div>
+            )}
+          </Section>
 
-              {/* Schedule */}
-              <button
-                type="button"
-                className="text-xs text-primary hover:underline"
-                onClick={() => setShowSchedule(!showSchedule)}
-              >
-                {showSchedule ? "Hide schedule" : "Schedule…"}
-              </button>
-              {showSchedule && (
-                <div className="space-y-2">
-                  <Input
-                    type="datetime-local"
-                    value={form.scheduledAt}
-                    onChange={(e) => setField("scheduledAt", e.target.value)}
-                    className="text-xs"
-                  />
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    className="w-full"
-                    disabled={saving || !form.scheduledAt}
-                    onClick={() => void submit("schedule")}
-                  >
-                    Schedule post
-                  </Button>
-                </div>
+          <Section title="Details">
+            <div className="space-y-1.5">
+              <Label htmlFor="excerpt" className="text-xs">Excerpt</Label>
+              <Textarea
+                id="excerpt"
+                value={form.excerpt}
+                onChange={(e) => setField("excerpt", e.target.value)}
+                placeholder="Brief post summary…"
+                rows={3}
+                className="resize-none text-sm"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="coverImageUrl" className="text-xs">Cover image URL</Label>
+              <Input
+                id="coverImageUrl"
+                value={form.coverImageUrl}
+                onChange={(e) => setField("coverImageUrl", e.target.value)}
+                placeholder="https://…"
+                className="text-sm"
+              />
+            </div>
+          </Section>
+
+          <div className="rounded-lg border">
+            <button
+              type="button"
+              className="flex w-full items-center justify-between px-4 py-2.5 text-sm font-medium"
+              onClick={() => setShowSeo(!showSeo)}
+            >
+              SEO
+              {showSeo ? (
+                <ChevronDown className="size-4 text-muted-foreground" />
+              ) : (
+                <ChevronRight className="size-4 text-muted-foreground" />
               )}
-            </CardContent>
-          </Card>
-
-          {/* Excerpt & cover */}
-          <Card>
-            <CardHeader className="pb-2">
-              <h3 className="font-semibold text-sm">Details</h3>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <div className="space-y-1.5">
-                <Label htmlFor="excerpt" className="text-xs">Excerpt</Label>
-                <Textarea
-                  id="excerpt"
-                  value={form.excerpt}
-                  onChange={(e) => setField("excerpt", e.target.value)}
-                  placeholder="Brief post summary…"
-                  rows={3}
-                  className="text-sm resize-none"
-                />
-              </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="coverImageUrl" className="text-xs">Cover image URL</Label>
-                <Input
-                  id="coverImageUrl"
-                  value={form.coverImageUrl}
-                  onChange={(e) => setField("coverImageUrl", e.target.value)}
-                  placeholder="https://…"
-                  className="text-sm"
-                />
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* SEO */}
-          <Card>
-            <CardHeader className="pb-2">
-              <button
-                type="button"
-                className="text-sm font-semibold hover:text-primary text-left"
-                onClick={() => setShowSeo(!showSeo)}
-              >
-                SEO {showSeo ? "▲" : "▼"}
-              </button>
-            </CardHeader>
+            </button>
             {showSeo && (
-              <CardContent className="space-y-3">
+              <div className="space-y-3 border-t p-4">
                 <div className="space-y-1.5">
                   <Label htmlFor="seoTitle" className="text-xs">SEO title</Label>
                   <Input
@@ -323,7 +312,7 @@ export function PostForm({ post }: PostFormProps) {
                     onChange={(e) => setField("seoDescription", e.target.value)}
                     placeholder={form.excerpt}
                     rows={2}
-                    className="text-sm resize-none"
+                    className="resize-none text-sm"
                   />
                 </div>
                 <div className="space-y-1.5">
@@ -336,9 +325,9 @@ export function PostForm({ post }: PostFormProps) {
                     className="text-sm"
                   />
                 </div>
-              </CardContent>
+              </div>
             )}
-          </Card>
+          </div>
         </div>
       </div>
     </form>

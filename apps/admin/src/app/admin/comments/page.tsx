@@ -1,5 +1,8 @@
 import { cookies } from "next/headers";
-import { Card, CardContent } from "@repo/ui";
+import { MessageSquare } from "lucide-react";
+import { PageHeader } from "@/components/PageHeader";
+import { LinkTabs } from "@/components/LinkTabs";
+import { StatusBadge } from "@/components/StatusBadge";
 import { ModerateCommentButtons } from "./ModerateCommentButtons";
 
 interface Comment {
@@ -39,63 +42,48 @@ export default async function CommentsPage({
   const { data: comments, meta } = await fetchComments(activeStatus);
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold">Comment Moderation</h1>
-        <p className="text-muted-foreground text-sm mt-1">Review and moderate reader comments.</p>
-      </div>
+    <div className="space-y-5">
+      <PageHeader
+        title="Comments"
+        description={`Review and moderate reader comments — ${meta.total} ${STATUS_LABELS[activeStatus]?.toLowerCase()}`}
+      />
 
-      <div className="flex gap-1 border-b">
-        {STATUS_TABS.map((s) => (
-          <a
-            key={s}
-            href={`/admin/comments?status=${s}`}
-            className={`px-4 py-2 text-sm font-medium border-b-2 -mb-px transition-colors ${
-              activeStatus === s
-                ? "border-primary text-primary"
-                : "border-transparent text-muted-foreground hover:text-foreground"
-            }`}
-          >
-            {STATUS_LABELS[s]}
-          </a>
-        ))}
-      </div>
+      <LinkTabs
+        tabs={STATUS_TABS.map((s) => ({
+          label: STATUS_LABELS[s] ?? s,
+          href: `/admin/comments?status=${s}`,
+          active: activeStatus === s,
+        }))}
+      />
 
-      <Card>
-        <CardContent className="pt-4">
-          <p className="text-xs text-muted-foreground mb-4">{meta.total} comment{meta.total !== 1 ? "s" : ""}</p>
-          {comments.length === 0 ? (
-            <p className="text-muted-foreground text-sm py-8 text-center">No {STATUS_LABELS[activeStatus]?.toLowerCase()} comments.</p>
-          ) : (
-            <ul className="divide-y">
-              {comments.map((comment) => (
-                <li key={comment.id} className="py-4">
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className="text-sm font-medium">{comment.author?.name ?? "Anonymous"}</span>
-                        <span className="text-xs text-muted-foreground">·</span>
-                        <span className="text-xs text-muted-foreground">
-                          {new Date(comment.createdAt).toLocaleDateString()}
-                        </span>
-                        <span className={`px-1.5 py-0.5 rounded text-xs font-medium ${
-                          comment.status === "pending" ? "bg-yellow-100 text-yellow-700"
-                            : comment.status === "approved" ? "bg-green-100 text-green-700"
-                            : "bg-red-100 text-red-700"
-                        }`}>
-                          {comment.status}
-                        </span>
-                      </div>
-                      <p className="text-sm text-foreground leading-relaxed line-clamp-3">{comment.content}</p>
-                    </div>
-                    <ModerateCommentButtons commentId={comment.id} currentStatus={comment.status} />
+      {comments.length === 0 ? (
+        <div className="flex flex-col items-center gap-2 rounded-lg border border-dashed py-12 text-center">
+          <MessageSquare className="size-8 text-muted-foreground/60" />
+          <p className="text-sm text-muted-foreground">
+            No {STATUS_LABELS[activeStatus]?.toLowerCase()} comments.
+          </p>
+        </div>
+      ) : (
+        <ul className="divide-y rounded-lg border">
+          {comments.map((comment) => (
+            <li key={comment.id} className="p-4 transition-colors hover:bg-muted/40">
+              <div className="flex items-start justify-between gap-4">
+                <div className="min-w-0 flex-1">
+                  <div className="mb-1 flex items-center gap-2">
+                    <span className="text-sm font-medium">{comment.author?.name ?? "Anonymous"}</span>
+                    <span className="text-xs text-muted-foreground">
+                      {new Date(comment.createdAt).toLocaleDateString()}
+                    </span>
+                    <StatusBadge status={comment.status} />
                   </div>
-                </li>
-              ))}
-            </ul>
-          )}
-        </CardContent>
-      </Card>
+                  <p className="line-clamp-3 text-sm leading-relaxed text-foreground">{comment.content}</p>
+                </div>
+                <ModerateCommentButtons commentId={comment.id} currentStatus={comment.status} />
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   );
 }

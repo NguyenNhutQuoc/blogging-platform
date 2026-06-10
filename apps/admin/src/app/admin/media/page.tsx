@@ -1,5 +1,14 @@
 import { cookies } from "next/headers";
-import { Card, CardContent } from "@repo/ui";
+import { Image as ImageIcon } from "lucide-react";
+import {
+  Table,
+  TableHeader,
+  TableBody,
+  TableRow,
+  TableHead,
+  TableCell,
+} from "@repo/ui";
+import { PageHeader } from "@/components/PageHeader";
 
 interface MediaItem {
   id: string;
@@ -38,83 +47,87 @@ export default async function MediaPage() {
   const others = media.filter((m) => !m.mimeType.startsWith("image/"));
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold">Media Library</h1>
-          <p className="text-muted-foreground text-sm mt-1">{media.length} file{media.length !== 1 ? "s" : ""} uploaded</p>
-        </div>
-      </div>
+    <div className="space-y-5">
+      <PageHeader
+        title="Media Library"
+        description={`${media.length} file${media.length !== 1 ? "s" : ""} uploaded`}
+      />
 
       {images.length > 0 && (
-        <Card>
-          <CardContent className="pt-4">
-            <h2 className="text-sm font-semibold mb-3">Images ({images.length})</h2>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
-              {images.map((item) => (
-                <a
-                  key={item.id}
-                  href={item.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="group relative aspect-square rounded-md overflow-hidden border bg-muted hover:ring-2 hover:ring-primary transition-all"
-                >
-                  <img
-                    src={item.url}
-                    alt={item.filename}
-                    className="w-full h-full object-cover"
-                  />
-                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors flex items-end">
-                    <div className="w-full p-1.5 text-white text-xs opacity-0 group-hover:opacity-100 transition-opacity bg-gradient-to-t from-black/60 to-transparent">
-                      <p className="truncate font-medium">{item.filename}</p>
-                      <p className="text-white/70">{formatBytes(item.size)}</p>
-                    </div>
+        <section className="space-y-3">
+          <h2 className="text-sm font-medium">
+            Images <span className="font-normal text-muted-foreground">({images.length})</span>
+          </h2>
+          <div className="grid grid-cols-[repeat(auto-fill,minmax(140px,1fr))] gap-3">
+            {images.map((item) => (
+              <a
+                key={item.id}
+                href={item.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group relative aspect-square overflow-hidden rounded-md border bg-muted transition-all hover:ring-2 hover:ring-ring"
+              >
+                <img
+                  src={item.url}
+                  alt={item.filename}
+                  className="h-full w-full object-cover"
+                />
+                <div className="absolute inset-0 flex items-end bg-black/0 transition-colors group-hover:bg-black/40">
+                  <div className="w-full bg-gradient-to-t from-black/60 to-transparent p-1.5 text-xs text-white opacity-0 transition-opacity group-hover:opacity-100">
+                    <p className="truncate font-medium">{item.filename}</p>
+                    <p className="text-white/70">{formatBytes(item.size)}</p>
                   </div>
-                </a>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+                </div>
+              </a>
+            ))}
+          </div>
+        </section>
       )}
 
       {others.length > 0 && (
-        <Card>
-          <CardContent className="pt-4">
-            <h2 className="text-sm font-semibold mb-3">Other files ({others.length})</h2>
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b text-left text-muted-foreground">
-                  <th className="pb-2 pr-4 font-medium">Filename</th>
-                  <th className="pb-2 pr-4 font-medium">Type</th>
-                  <th className="pb-2 pr-4 font-medium">Size</th>
-                  <th className="pb-2 font-medium">Uploaded</th>
-                </tr>
-              </thead>
-              <tbody>
-                {others.map((item) => (
-                  <tr key={item.id} className="border-b last:border-0">
-                    <td className="py-2.5 pr-4">
-                      <a href={item.url} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline font-mono text-xs">
-                        {item.filename}
-                      </a>
-                    </td>
-                    <td className="py-2.5 pr-4 text-muted-foreground text-xs">{item.mimeType}</td>
-                    <td className="py-2.5 pr-4 text-muted-foreground text-xs">{formatBytes(item.size)}</td>
-                    <td className="py-2.5 text-muted-foreground text-xs">{new Date(item.createdAt).toLocaleDateString()}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </CardContent>
-        </Card>
+        <section className="space-y-3">
+          <h2 className="text-sm font-medium">
+            Other files <span className="font-normal text-muted-foreground">({others.length})</span>
+          </h2>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Filename</TableHead>
+                <TableHead>Type</TableHead>
+                <TableHead>Size</TableHead>
+                <TableHead>Uploaded</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {others.map((item) => (
+                <TableRow key={item.id}>
+                  <TableCell>
+                    <a
+                      href={item.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="font-mono text-xs hover:underline"
+                    >
+                      {item.filename}
+                    </a>
+                  </TableCell>
+                  <TableCell className="text-xs text-muted-foreground">{item.mimeType}</TableCell>
+                  <TableCell className="text-xs text-muted-foreground">{formatBytes(item.size)}</TableCell>
+                  <TableCell className="text-xs text-muted-foreground">
+                    {new Date(item.createdAt).toLocaleDateString()}
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </section>
       )}
 
       {media.length === 0 && (
-        <Card>
-          <CardContent className="pt-4">
-            <p className="text-muted-foreground text-sm py-8 text-center">No media uploaded yet.</p>
-          </CardContent>
-        </Card>
+        <div className="flex flex-col items-center gap-2 rounded-lg border border-dashed py-12 text-center">
+          <ImageIcon className="size-8 text-muted-foreground/60" />
+          <p className="text-sm text-muted-foreground">No media uploaded yet.</p>
+        </div>
       )}
     </div>
   );

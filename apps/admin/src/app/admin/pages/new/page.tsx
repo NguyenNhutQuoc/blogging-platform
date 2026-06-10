@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Button, Input } from "@repo/ui";
+import { Button, Input, Label } from "@repo/ui";
+import { PageHeader } from "@/components/PageHeader";
 
 export default function NewPagePage() {
   const router = useRouter();
@@ -34,43 +35,43 @@ export default function NewPagePage() {
   }
 
   return (
-    <div className="space-y-6 max-w-2xl">
-      <h1 className="text-2xl font-bold">New Page</h1>
+    <div className="max-w-2xl space-y-5">
+      <PageHeader title="New page" description="Static content page" />
       <form onSubmit={handleSubmit} className="space-y-4">
-        <div className="space-y-1">
-          <label className="text-sm font-medium">Title</label>
+        <div className="space-y-1.5">
+          <Label>Title</Label>
           <Input value={form.title} onChange={(e) => setForm((f) => ({ ...f, title: e.target.value, slug: autoSlug(e.target.value) }))} required />
         </div>
-        <div className="space-y-1">
-          <label className="text-sm font-medium">Slug</label>
-          <Input value={form.slug} onChange={(e) => setForm((f) => ({ ...f, slug: e.target.value }))} placeholder="my-page" required />
+        <div className="space-y-1.5">
+          <Label>Slug</Label>
+          <Input className="font-mono text-sm" value={form.slug} onChange={(e) => setForm((f) => ({ ...f, slug: e.target.value }))} placeholder="my-page" required />
         </div>
-        <div className="space-y-1">
-          <label className="text-sm font-medium">Content (HTML)</label>
+        <div className="space-y-1.5">
+          <Label>Content (HTML)</Label>
           <textarea
             value={form.content}
             onChange={(e) => setForm((f) => ({ ...f, content: e.target.value }))}
             rows={12}
-            className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm font-mono"
+            className="flex w-full rounded-md border border-input bg-background px-3 py-2 font-mono text-sm"
             placeholder="<p>Page content here…</p>"
           />
         </div>
         <div className="flex gap-4">
-          <div className="space-y-1 flex-1">
-            <label className="text-sm font-medium">SEO Title</label>
+          <div className="flex-1 space-y-1.5">
+            <Label>SEO Title</Label>
             <Input value={form.seoTitle} onChange={(e) => setForm((f) => ({ ...f, seoTitle: e.target.value }))} />
           </div>
-          <div className="space-y-1">
-            <label className="text-sm font-medium">Status</label>
-            <select value={form.status} onChange={(e) => setForm((f) => ({ ...f, status: e.target.value }))} className="border rounded-md px-3 py-2 text-sm h-10">
+          <div className="space-y-1.5">
+            <Label>Status</Label>
+            <select value={form.status} onChange={(e) => setForm((f) => ({ ...f, status: e.target.value }))} className="h-10 rounded-md border bg-background px-3 text-sm">
               <option value="draft">Draft</option>
               <option value="published">Published</option>
             </select>
           </div>
         </div>
         {error && <p className="text-sm text-destructive">{error}</p>}
-        <div className="flex gap-3">
-          <Button type="submit" disabled={saving}>{saving ? "Creating…" : "Create Page"}</Button>
+        <div className="flex gap-3 border-t pt-4">
+          <Button type="submit" disabled={saving}>{saving ? "Creating…" : "Create page"}</Button>
           <Button type="button" variant="ghost" onClick={() => router.back()}>Cancel</Button>
         </div>
       </form>

@@ -1,5 +1,9 @@
 import { cookies } from "next/headers";
-import { Card, CardContent, CardHeader } from "@repo/ui";
+import Link from "next/link";
+import { ScrollText } from "lucide-react";
+import { Button } from "@repo/ui";
+import { PageHeader } from "@/components/PageHeader";
+import { AuditActionBadge } from "@/components/StatusBadge";
 
 interface AuditLog {
   id: string;
@@ -32,18 +36,6 @@ async function fetchAuditLogs(page: number, entityType?: string): Promise<AuditR
   } catch { return null; }
 }
 
-const actionColors: Record<string, string> = {
-  "user.role_changed": "bg-purple-100 text-purple-700",
-  "user.banned": "bg-red-100 text-red-700",
-  "user.suspended": "bg-yellow-100 text-yellow-700",
-  "user.restored": "bg-green-100 text-green-700",
-  "user.deletion_requested": "bg-red-100 text-red-700",
-  "page.created": "bg-blue-100 text-blue-700",
-  "page.updated": "bg-blue-100 text-blue-700",
-  "page.deleted": "bg-red-100 text-red-700",
-  "settings.updated": "bg-orange-100 text-orange-700",
-};
-
 export default async function AuditLogsPage({
   searchParams,
 }: {
@@ -54,69 +46,81 @@ export default async function AuditLogsPage({
   const result = await fetchAuditLogs(page, entityType);
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold">Audit Log</h1>
-        <p className="text-muted-foreground text-sm mt-1">
-          {result?.meta.total ?? 0} total events
-        </p>
-      </div>
+    <div className="space-y-5">
+      <PageHeader title="Audit Log" description={`${result?.meta.total ?? 0} total events`} />
 
-      <Card>
-        <CardHeader className="pb-3">
-          <form className="flex gap-2">
-            <select
-              name="entityType"
-              defaultValue={entityType ?? ""}
-              className="border rounded-md px-3 py-1.5 text-sm"
-            >
-              <option value="">All entities</option>
-              <option value="user">Users</option>
-              <option value="post">Posts</option>
-              <option value="page">Pages</option>
-              <option value="site_settings">Settings</option>
-            </select>
-            <button type="submit" className="border rounded-md px-3 py-1.5 text-sm bg-primary text-primary-foreground">
-              Filter
-            </button>
-          </form>
-        </CardHeader>
-        <CardContent>
-          {!result || result.data.length === 0 ? (
-            <p className="text-muted-foreground text-sm py-8 text-center">No audit events found.</p>
-          ) : (
-            <div className="space-y-1">
-              {result.data.map((log) => (
-                <div key={log.id} className="flex items-start gap-3 py-2.5 border-b last:border-0 text-sm">
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${actionColors[log.action] ?? "bg-gray-100 text-gray-700"}`}>
-                        {log.action}
-                      </span>
-                      <span className="text-muted-foreground text-xs">{log.entityType}</span>
-                      {log.entityId && <span className="text-muted-foreground text-xs font-mono">{log.entityId.slice(0, 8)}…</span>}
-                    </div>
-                    <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground">
-                      <span>Actor: {log.actorId ? log.actorId.slice(0, 8) + "…" : "system"}</span>
-                      {log.ipAddress && <span>IP: {log.ipAddress}</span>}
-                    </div>
-                  </div>
-                  <time className="text-xs text-muted-foreground whitespace-nowrap pt-0.5">
-                    {new Date(log.createdAt).toLocaleString()}
-                  </time>
+      <form className="flex gap-2">
+        <select
+          name="entityType"
+          defaultValue={entityType ?? ""}
+          className="h-8 rounded-md border bg-background px-2 text-sm"
+        >
+          <option value="">All entities</option>
+          <option value="user">Users</option>
+          <option value="post">Posts</option>
+          <option value="page">Pages</option>
+          <option value="site_settings">Settings</option>
+        </select>
+        <Button type="submit" variant="outline" size="sm">
+          Filter
+        </Button>
+      </form>
+
+      {!result || result.data.length === 0 ? (
+        <div className="flex flex-col items-center gap-2 rounded-lg border border-dashed py-12 text-center">
+          <ScrollText className="size-8 text-muted-foreground/60" />
+          <p className="text-sm text-muted-foreground">No audit events found.</p>
+        </div>
+      ) : (
+        <div className="divide-y rounded-lg border">
+          {result.data.map((log) => (
+            <div key={log.id} className="flex items-start gap-3 px-4 py-2.5 text-sm transition-colors hover:bg-muted/40">
+              <div className="min-w-0 flex-1">
+                <div className="flex flex-wrap items-center gap-2">
+                  <AuditActionBadge action={log.action} />
+                  <span className="text-xs text-muted-foreground">{log.entityType}</span>
+                  {log.entityId && (
+                    <span className="font-mono text-xs text-muted-foreground">
+                      {log.entityId.slice(0, 8)}…
+                    </span>
+                  )}
                 </div>
-              ))}
+                <div className="mt-1 flex items-center gap-3 text-xs text-muted-foreground">
+                  <span>Actor: {log.actorId ? log.actorId.slice(0, 8) + "…" : "system"}</span>
+                  {log.ipAddress && <span>IP: {log.ipAddress}</span>}
+                </div>
+              </div>
+              <time className="whitespace-nowrap pt-0.5 text-xs text-muted-foreground">
+                {new Date(log.createdAt).toLocaleString()}
+              </time>
             </div>
-          )}
-          {result && result.meta.totalPages > 1 && (
-            <div className="flex gap-2 mt-4 justify-center text-sm">
-              {page > 1 && <a href={`?page=${page - 1}${entityType ? `&entityType=${entityType}` : ""}`} className="border rounded px-3 py-1 hover:bg-muted">Previous</a>}
-              <span className="px-3 py-1 text-muted-foreground">Page {page} of {result.meta.totalPages}</span>
-              {page < result.meta.totalPages && <a href={`?page=${page + 1}${entityType ? `&entityType=${entityType}` : ""}`} className="border rounded px-3 py-1 hover:bg-muted">Next</a>}
-            </div>
-          )}
-        </CardContent>
-      </Card>
+          ))}
+        </div>
+      )}
+
+      {result && result.meta.totalPages > 1 && (
+        <div className="flex items-center justify-between border-t pt-4 text-sm text-muted-foreground">
+          <span>
+            Page {page} of {result.meta.totalPages}
+          </span>
+          <div className="flex gap-2">
+            {page > 1 && (
+              <Button asChild variant="outline" size="sm">
+                <Link href={`?page=${page - 1}${entityType ? `&entityType=${entityType}` : ""}`}>
+                  Previous
+                </Link>
+              </Button>
+            )}
+            {page < result.meta.totalPages && (
+              <Button asChild variant="outline" size="sm">
+                <Link href={`?page=${page + 1}${entityType ? `&entityType=${entityType}` : ""}`}>
+                  Next
+                </Link>
+              </Button>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

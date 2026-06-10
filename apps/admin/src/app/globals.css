@@ -2,7 +2,29 @@
 @plugin "tailwindcss-animate";
 @import "@repo/ui/globals.css";
 
+/*
+ * Make dark: utilities follow the .dark class set by the theme toggle
+ * instead of the OS prefers-color-scheme default in Tailwind v4.
+ */
+@custom-variant dark (&:is(.dark *));
+
 /* ── Admin-specific styles ───────────────────────────────────────────────── */
+
+/*
+ * Admin-local token overrides: near-black/near-white primary (Vercel-style)
+ * instead of the purple brand used by the public web app.
+ */
+:root {
+  --primary: 240 5.9% 10%;
+  --primary-foreground: 0 0% 98%;
+  --ring: 240 5.9% 10%;
+}
+
+.dark {
+  --primary: 0 0% 98%;
+  --primary-foreground: 240 5.9% 10%;
+  --ring: 240 4.9% 83.9%;
+}
 
 /* Tiptap editor container */
 .tiptap-editor {
@@ -58,7 +80,7 @@
     }
 
     blockquote {
-      border-left: 4px solid hsl(var(--primary));
+      border-left: 3px solid hsl(var(--border));
       padding-left: 1em;
       color: hsl(var(--muted-foreground));
       font-style: italic;
