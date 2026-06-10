@@ -41,7 +41,7 @@ async function createAdmin() {
       .set({
         role: "admin",
         status: "active",
-        emailVerifiedAt: new Date(),
+        emailVerified: true,
       })
       .where(eq(users.email, email));
 

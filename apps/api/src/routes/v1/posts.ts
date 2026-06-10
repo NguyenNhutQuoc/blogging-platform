@@ -186,7 +186,7 @@ router.openapi(getPostRoute, async (c) => {
   const viewer = session?.user
     ? {
         id: session.user.id,
-        role: (session.user as any).role as "admin" | "editor" | "author" | "subscriber",
+        role: (session.user as { role?: string }).role as "admin" | "editor" | "author" | "subscriber",
       }
     : undefined;
   const post = await postsService.getPostBySlug(slug, viewer);

@@ -5,6 +5,9 @@ export default defineConfig({
     globals: true,
     environment: "node",
     setupFiles: ["./src/tests/setup.ts"],
+    // All suites share one test DB and truncate it between tests,
+    // so test files must not run concurrently.
+    fileParallelism: false,
     coverage: {
       provider: "v8",
       reporter: ["text", "json", "html"],
