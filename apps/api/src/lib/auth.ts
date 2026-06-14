@@ -31,6 +31,16 @@ export const auth = betterAuth({
     fields: {
       image: "avatarUrl",
     },
+    /**
+     * Custom columns on the users table must be declared here or Better Auth
+     * strips them from session/user responses — the admin layout relies on
+     * `role` to authorize access. `input: false` prevents clients from
+     * setting these fields themselves at signup.
+     */
+    additionalFields: {
+      role: { type: "string", input: false },
+      status: { type: "string", input: false },
+    },
   },
   account: {
     fields: {
