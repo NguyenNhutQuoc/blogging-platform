@@ -1,5 +1,7 @@
 import { cookies } from "next/headers";
-import { Card, CardContent, Button } from "@repo/ui";
+import Link from "next/link";
+import { Badge, Button } from "@repo/ui";
+import { PageHeader } from "@/components/PageHeader";
 
 interface Category {
   id: string;
@@ -37,67 +39,76 @@ export default async function CategoriesPage() {
   const { categories, tags } = await fetchAll();
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold">Categories &amp; Tags</h1>
-        <p className="text-muted-foreground text-sm mt-1">Manage taxonomy for organising posts.</p>
-      </div>
+    <div className="space-y-5">
+      <PageHeader
+        title="Categories & Tags"
+        description="Manage taxonomy for organising posts"
+      />
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         {/* Categories */}
-        <Card>
-          <CardContent className="pt-4">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="font-semibold">Categories <span className="text-muted-foreground font-normal text-sm">({categories.length})</span></h2>
-              <Button asChild size="sm">
-                <a href="/admin/categories/new">New category</a>
-              </Button>
-            </div>
-            {categories.length === 0 ? (
-              <p className="text-muted-foreground text-sm py-4 text-center">No categories yet.</p>
-            ) : (
-              <ul className="divide-y">
-                {categories.map((cat) => (
-                  <li key={cat.id} className="flex items-center justify-between py-2.5">
-                    <div>
-                      <span className="font-medium text-sm">{cat.name}</span>
-                      <span className="text-muted-foreground text-xs ml-2 font-mono">{cat.slug}</span>
-                      {cat.description && <p className="text-xs text-muted-foreground mt-0.5">{cat.description}</p>}
-                    </div>
-                    <a href={`/admin/categories/${cat.id}`} className="text-xs text-primary hover:underline ml-4 shrink-0">Edit</a>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </CardContent>
-        </Card>
+        <div className="rounded-lg border">
+          <div className="flex items-center justify-between border-b px-4 py-3">
+            <h2 className="text-sm font-medium">
+              Categories{" "}
+              <span className="font-normal text-muted-foreground">({categories.length})</span>
+            </h2>
+            <Button asChild size="sm" variant="outline">
+              <Link href="/admin/categories/new">New category</Link>
+            </Button>
+          </div>
+          {categories.length === 0 ? (
+            <p className="py-8 text-center text-sm text-muted-foreground">No categories yet.</p>
+          ) : (
+            <ul className="divide-y">
+              {categories.map((cat) => (
+                <li
+                  key={cat.id}
+                  className="flex items-center justify-between px-4 py-2.5 transition-colors hover:bg-muted/40"
+                >
+                  <div>
+                    <span className="text-sm font-medium">{cat.name}</span>
+                    <span className="ml-2 font-mono text-xs text-muted-foreground">{cat.slug}</span>
+                    {cat.description && (
+                      <p className="mt-0.5 text-xs text-muted-foreground">{cat.description}</p>
+                    )}
+                  </div>
+                  <Link
+                    href={`/admin/categories/${cat.id}`}
+                    className="ml-4 shrink-0 text-xs font-medium text-muted-foreground hover:text-foreground"
+                  >
+                    Edit
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
 
         {/* Tags */}
-        <Card>
-          <CardContent className="pt-4">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="font-semibold">Tags <span className="text-muted-foreground font-normal text-sm">({tags.length})</span></h2>
-              <Button asChild size="sm">
-                <a href="/admin/categories/new-tag">New tag</a>
-              </Button>
-            </div>
-            {tags.length === 0 ? (
-              <p className="text-muted-foreground text-sm py-4 text-center">No tags yet.</p>
-            ) : (
-              <div className="flex flex-wrap gap-2 pt-1">
-                {tags.map((tag) => (
-                  <a
-                    key={tag.id}
-                    href={`/admin/categories/tag/${tag.id}`}
-                    className="inline-flex items-center gap-1 px-2.5 py-1 bg-muted rounded-full text-xs hover:bg-accent transition-colors"
-                  >
+        <div className="rounded-lg border">
+          <div className="flex items-center justify-between border-b px-4 py-3">
+            <h2 className="text-sm font-medium">
+              Tags <span className="font-normal text-muted-foreground">({tags.length})</span>
+            </h2>
+            <Button asChild size="sm" variant="outline">
+              <Link href="/admin/categories/new-tag">New tag</Link>
+            </Button>
+          </div>
+          {tags.length === 0 ? (
+            <p className="py-8 text-center text-sm text-muted-foreground">No tags yet.</p>
+          ) : (
+            <div className="flex flex-wrap gap-2 p-4">
+              {tags.map((tag) => (
+                <Link key={tag.id} href={`/admin/categories/tag/${tag.id}`}>
+                  <Badge variant="secondary" className="hover:bg-accent">
                     {tag.name}
-                  </a>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
+                  </Badge>
+                </Link>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

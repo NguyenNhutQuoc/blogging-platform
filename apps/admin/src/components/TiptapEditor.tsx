@@ -6,6 +6,23 @@ import Image from "@tiptap/extension-image";
 import Placeholder from "@tiptap/extension-placeholder";
 import CharacterCount from "@tiptap/extension-character-count";
 import { useCallback, useEffect } from "react";
+import {
+  Bold,
+  Italic,
+  Strikethrough,
+  Code,
+  Heading1,
+  Heading2,
+  Heading3,
+  List,
+  ListOrdered,
+  TextQuote,
+  SquareCode,
+  ImagePlus,
+  Minus,
+  Undo2,
+  Redo2,
+} from "lucide-react";
 import { Button } from "@repo/ui";
 
 export interface TiptapOutput {
@@ -31,7 +48,7 @@ interface TiptapEditorProps {
  *                bullet list, ordered list, horizontal rule, hard break
  *  - Image: inline image insertion via URL
  *  - Placeholder: greyed-out placeholder text when empty
- *  - CharacterCount: word/character count shown in the toolbar
+ *  - CharacterCount: word/character count shown in the footer
  */
 export function TiptapEditor({ initialHtml, onChange, placeholder }: TiptapEditorProps) {
   const editor = useEditor({
@@ -83,130 +100,130 @@ export function TiptapEditor({ initialHtml, onChange, placeholder }: TiptapEdito
   const charCount = editor.storage.characterCount?.characters() ?? 0;
 
   return (
-    <div className="border rounded-lg overflow-hidden bg-background">
+    <div className="overflow-hidden rounded-lg border bg-background">
       {/* Toolbar */}
-      <div className="flex flex-wrap items-center gap-0.5 px-2 py-1.5 border-b bg-muted/30">
+      <div className="flex flex-wrap items-center gap-0.5 border-b bg-muted/40 px-2 py-1.5">
         <ToolbarButton
           onClick={() => editor.chain().focus().toggleBold().run()}
           active={editor.isActive("bold")}
           title="Bold (Ctrl+B)"
         >
-          <strong>B</strong>
+          <Bold />
         </ToolbarButton>
         <ToolbarButton
           onClick={() => editor.chain().focus().toggleItalic().run()}
           active={editor.isActive("italic")}
           title="Italic (Ctrl+I)"
         >
-          <em>I</em>
+          <Italic />
         </ToolbarButton>
         <ToolbarButton
           onClick={() => editor.chain().focus().toggleStrike().run()}
           active={editor.isActive("strike")}
           title="Strikethrough"
         >
-          <s>S</s>
+          <Strikethrough />
         </ToolbarButton>
         <ToolbarButton
           onClick={() => editor.chain().focus().toggleCode().run()}
           active={editor.isActive("code")}
           title="Inline code"
         >
-          {"<>"}
+          <Code />
         </ToolbarButton>
 
-        <div className="w-px h-5 bg-border mx-1" />
+        <div className="mx-1 h-5 w-px bg-border" />
 
         <ToolbarButton
           onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
           active={editor.isActive("heading", { level: 1 })}
           title="Heading 1"
         >
-          H1
+          <Heading1 />
         </ToolbarButton>
         <ToolbarButton
           onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
           active={editor.isActive("heading", { level: 2 })}
           title="Heading 2"
         >
-          H2
+          <Heading2 />
         </ToolbarButton>
         <ToolbarButton
           onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
           active={editor.isActive("heading", { level: 3 })}
           title="Heading 3"
         >
-          H3
+          <Heading3 />
         </ToolbarButton>
 
-        <div className="w-px h-5 bg-border mx-1" />
+        <div className="mx-1 h-5 w-px bg-border" />
 
         <ToolbarButton
           onClick={() => editor.chain().focus().toggleBulletList().run()}
           active={editor.isActive("bulletList")}
           title="Bullet list"
         >
-          •—
+          <List />
         </ToolbarButton>
         <ToolbarButton
           onClick={() => editor.chain().focus().toggleOrderedList().run()}
           active={editor.isActive("orderedList")}
           title="Numbered list"
         >
-          1—
+          <ListOrdered />
         </ToolbarButton>
         <ToolbarButton
           onClick={() => editor.chain().focus().toggleBlockquote().run()}
           active={editor.isActive("blockquote")}
           title="Blockquote"
         >
-          ❝
+          <TextQuote />
         </ToolbarButton>
         <ToolbarButton
           onClick={() => editor.chain().focus().toggleCodeBlock().run()}
           active={editor.isActive("codeBlock")}
           title="Code block"
         >
-          {"{ }"}
+          <SquareCode />
         </ToolbarButton>
 
-        <div className="w-px h-5 bg-border mx-1" />
+        <div className="mx-1 h-5 w-px bg-border" />
 
         <ToolbarButton onClick={insertImage} title="Insert image">
-          IMG
+          <ImagePlus />
         </ToolbarButton>
         <ToolbarButton
           onClick={() => editor.chain().focus().setHorizontalRule().run()}
           title="Horizontal rule"
         >
-          —
+          <Minus />
         </ToolbarButton>
 
-        <div className="w-px h-5 bg-border mx-1" />
+        <div className="mx-1 h-5 w-px bg-border" />
 
         <ToolbarButton
           onClick={() => editor.chain().focus().undo().run()}
           disabled={!editor.can().undo()}
           title="Undo (Ctrl+Z)"
         >
-          ↩
+          <Undo2 />
         </ToolbarButton>
         <ToolbarButton
           onClick={() => editor.chain().focus().redo().run()}
           disabled={!editor.can().redo()}
           title="Redo (Ctrl+Y)"
         >
-          ↪
+          <Redo2 />
         </ToolbarButton>
-
-        {/* Word/char count — pushed to the right */}
-        <div className="ml-auto text-xs text-muted-foreground pl-2 whitespace-nowrap">
-          {wordCount} words · {charCount} chars
-        </div>
       </div>
 
       {/* Editor content area */}
       <EditorContent editor={editor} className="tiptap-editor min-h-[400px]" />
+
+      {/* Word/char count footer */}
+      <div className="border-t px-3 py-1.5 text-xs text-muted-foreground">
+        {wordCount} words · {charCount} chars
+      </div>
     </div>
   );
 }
@@ -224,8 +241,7 @@ function ToolbarButton({ onClick, active, disabled, title, children }: ToolbarBu
     <Button
       type="button"
       variant={active ? "secondary" : "ghost"}
-      size="sm"
-      className="h-7 px-2 text-xs font-mono"
+      size="icon-xs"
       onClick={onClick}
       disabled={disabled}
       title={title}

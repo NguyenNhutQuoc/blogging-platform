@@ -14,8 +14,8 @@ export function DeletePageButton({ pageId }: { pageId: string }) {
   }
 
   return (
-    <Button variant="ghost" size="sm" disabled={loading} onClick={handleDelete}
-      className="text-xs h-6 px-2 text-destructive hover:text-destructive">
+    <Button variant="ghost" size="xs" loading={loading} onClick={handleDelete}
+      className="text-destructive hover:text-destructive">
       Delete
     </Button>
   );

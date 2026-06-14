@@ -1,5 +1,7 @@
 import { cookies } from "next/headers";
-import { Card, CardContent, CardHeader } from "@repo/ui";
+import Link from "next/link";
+import { ChevronRight, FilePlus2, Users, Files, Settings, ScrollText } from "lucide-react";
+import { PageHeader } from "@/components/PageHeader";
 
 interface StatsData {
   totalUsers: number;
@@ -35,6 +37,14 @@ async function fetchStats(): Promise<StatsData | null> {
   }
 }
 
+const quickLinks = [
+  { href: "/admin/posts/new", label: "New Post", icon: FilePlus2 },
+  { href: "/admin/users", label: "Manage Users", icon: Users },
+  { href: "/admin/pages", label: "Manage Pages", icon: Files },
+  { href: "/admin/settings", label: "Site Settings", icon: Settings },
+  { href: "/admin/audit-logs", label: "Audit Log", icon: ScrollText },
+];
+
 export default async function AdminDashboardPage() {
   const stats = await fetchStats();
 
@@ -45,37 +55,36 @@ export default async function AdminDashboardPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold">Dashboard</h1>
-        <p className="text-muted-foreground text-sm mt-1">Overview of your blog platform</p>
-      </div>
+      <PageHeader title="Dashboard" description="Overview of your blog platform" />
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
         {statCards.map((card) => (
-          <Card key={card.label}>
-            <CardHeader className="pb-2">
-              <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">{card.label}</p>
-            </CardHeader>
-            <CardContent>
-              <p className="text-3xl font-bold">{card.value}</p>
-            </CardContent>
-          </Card>
+          <div key={card.label} className="rounded-lg border p-4">
+            <p className="text-xs font-medium text-muted-foreground">{card.label}</p>
+            <p className="mt-1.5 text-2xl font-semibold tabular-nums">{card.value}</p>
+          </div>
         ))}
       </div>
 
-      <div className="grid md:grid-cols-2 gap-4">
-        <Card>
-          <CardHeader>
-            <h2 className="font-semibold">Quick Links</h2>
-          </CardHeader>
-          <CardContent className="space-y-2 text-sm">
-            <a href="/admin/posts/new" className="flex items-center gap-2 text-primary hover:underline">New Post</a>
-            <a href="/admin/users" className="flex items-center gap-2 text-primary hover:underline">Manage Users</a>
-            <a href="/admin/pages" className="flex items-center gap-2 text-primary hover:underline">Manage Pages</a>
-            <a href="/admin/settings" className="flex items-center gap-2 text-primary hover:underline">Site Settings</a>
-            <a href="/admin/audit-logs" className="flex items-center gap-2 text-primary hover:underline">Audit Log</a>
-          </CardContent>
-        </Card>
+      <div className="grid gap-4 md:grid-cols-2">
+        <div className="rounded-lg border">
+          <p className="border-b px-4 py-3 text-sm font-medium">Quick Links</p>
+          <div className="divide-y">
+            {quickLinks.map((link) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                className="flex items-center justify-between px-4 py-2.5 text-sm text-muted-foreground transition-colors hover:bg-muted/40 hover:text-foreground"
+              >
+                <span className="flex items-center gap-2.5">
+                  <link.icon className="size-4" />
+                  {link.label}
+                </span>
+                <ChevronRight className="size-4" />
+              </Link>
+            ))}
+          </div>
+        </div>
       </div>
     </div>
   );

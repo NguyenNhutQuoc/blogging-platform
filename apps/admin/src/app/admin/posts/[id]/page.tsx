@@ -1,6 +1,8 @@
 import { notFound } from "next/navigation";
 import { cookies } from "next/headers";
 import type { Metadata } from "next";
+import Link from "next/link";
+import { ArrowLeft, ExternalLink } from "lucide-react";
 import { PostForm } from "@/components/PostForm";
 import type { PostDetail } from "@repo/api-client";
 
@@ -22,23 +24,24 @@ export default async function EditPostPage({ params }: PageProps) {
   if (!post) notFound();
 
   return (
-    <div>
-      <div className="mb-6 flex items-center gap-3">
-        <a
+    <div className="space-y-5">
+      <div className="flex items-center gap-3 border-b pb-4">
+        <Link
           href="/admin/posts"
-          className="text-sm text-muted-foreground hover:text-foreground"
+          className="flex items-center gap-1 text-sm text-muted-foreground transition-colors hover:text-foreground"
         >
-          ← Posts
-        </a>
-        <h1 className="text-2xl font-bold">Edit post</h1>
+          <ArrowLeft className="size-4" /> Posts
+        </Link>
+        <span className="text-muted-foreground/40">/</span>
+        <h1 className="text-lg font-semibold tracking-tight">Edit post</h1>
         {post.status === "published" && (
           <a
             href={`/${post.slug}`}
             target="_blank"
             rel="noreferrer"
-            className="text-xs text-primary hover:underline ml-auto"
+            className="ml-auto flex items-center gap-1 text-xs text-muted-foreground transition-colors hover:text-foreground"
           >
-            View live ↗
+            View live <ExternalLink className="size-3" />
           </a>
         )}
       </div>

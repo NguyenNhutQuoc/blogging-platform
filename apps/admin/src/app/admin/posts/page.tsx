@@ -1,6 +1,19 @@
 import { cookies } from "next/headers";
-import { Button, Badge } from "@repo/ui";
+import Link from "next/link";
+import { FileText } from "lucide-react";
+import {
+  Button,
+  Table,
+  TableHeader,
+  TableBody,
+  TableRow,
+  TableHead,
+  TableCell,
+} from "@repo/ui";
 import type { PostDetail } from "@repo/api-client";
+import { PageHeader } from "@/components/PageHeader";
+import { LinkTabs } from "@/components/LinkTabs";
+import { StatusBadge } from "@/components/StatusBadge";
 
 /**
  * Admin posts listing — shows all posts (all statuses), not cached.
@@ -17,132 +30,101 @@ export default async function AdminPostsPage({
   const data = await fetchAdminPosts({ status, page });
 
   return (
-    <div>
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold">Posts</h1>
-        <a href="/admin/posts/new">
-          <Button>New post</Button>
-        </a>
-      </div>
+    <div className="space-y-5">
+      <PageHeader
+        title="Posts"
+        description="Create, edit and publish blog posts"
+        actions={
+          <Button asChild size="sm">
+            <Link href="/admin/posts/new">New post</Link>
+          </Button>
+        }
+      />
 
-      {/* Status filter tabs */}
-      <div className="flex gap-2 mb-6 text-sm">
-        {["", "draft", "published", "scheduled", "archived"].map((s) => (
-          <a
-            key={s}
-            href={s ? `/admin/posts?status=${s}` : "/admin/posts"}
-            className={`px-3 py-1.5 rounded-md transition-colors ${
-              (status ?? "") === s
-                ? "bg-primary text-primary-foreground"
-                : "text-muted-foreground hover:text-foreground hover:bg-muted"
-            }`}
-          >
-            {s || "All"}
-          </a>
-        ))}
-      </div>
+      <LinkTabs
+        tabs={["", "draft", "published", "scheduled", "archived"].map((s) => ({
+          label: s ? s.charAt(0).toUpperCase() + s.slice(1) : "All",
+          href: s ? `/admin/posts?status=${s}` : "/admin/posts",
+          active: (status ?? "") === s,
+        }))}
+      />
 
       {data === null ? (
-        <p className="text-muted-foreground">Failed to load posts.</p>
+        <p className="text-sm text-muted-foreground">Failed to load posts.</p>
       ) : data.posts.length === 0 ? (
-        <p className="text-muted-foreground py-8 text-center">
-          No posts found.
-        </p>
-      ) : (
-        <div className="rounded-lg border overflow-hidden">
-          <table className="w-full text-sm">
-            <thead className="bg-muted/50 border-b">
-              <tr>
-                <th className="text-left px-4 py-3 font-medium">Title</th>
-                <th className="text-left px-4 py-3 font-medium hidden md:table-cell">
-                  Author
-                </th>
-                <th className="text-left px-4 py-3 font-medium">Status</th>
-                <th className="text-left px-4 py-3 font-medium hidden sm:table-cell">
-                  Date
-                </th>
-                <th className="px-4 py-3" />
-              </tr>
-            </thead>
-            <tbody className="divide-y">
-              {data.posts.map((post) => (
-                <tr
-                  key={post.id}
-                  className="hover:bg-muted/30 transition-colors"
-                >
-                  <td className="px-4 py-3">
-                    <div className="font-medium line-clamp-1">{post.title}</div>
-                    <div className="text-xs text-muted-foreground mt-0.5">
-                      /{post.slug}
-                    </div>
-                  </td>
-                  <td className="px-4 py-3 hidden md:table-cell text-muted-foreground">
-                    {post.author.name}
-                  </td>
-                  <td className="px-4 py-3">
-                    <StatusBadge status={post.status} />
-                  </td>
-                  <td className="px-4 py-3 hidden sm:table-cell text-muted-foreground">
-                    {post.publishedAt
-                      ? new Date(post.publishedAt).toLocaleDateString()
-                      : "—"}
-                  </td>
-                  <td className="px-4 py-3 text-right">
-                    <a
-                      href={`/admin/posts/${post.id}`}
-                      className="text-primary hover:underline text-xs font-medium"
-                    >
-                      Edit
-                    </a>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        <div className="flex flex-col items-center gap-2 rounded-lg border border-dashed py-12 text-center">
+          <FileText className="size-8 text-muted-foreground/60" />
+          <p className="text-sm text-muted-foreground">No posts found.</p>
+          <Button asChild variant="outline" size="sm" className="mt-1">
+            <Link href="/admin/posts/new">Create your first post</Link>
+          </Button>
         </div>
+      ) : (
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Title</TableHead>
+              <TableHead className="hidden md:table-cell">Author</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead className="hidden sm:table-cell">Date</TableHead>
+              <TableHead />
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {data.posts.map((post) => (
+              <TableRow key={post.id}>
+                <TableCell>
+                  <div className="line-clamp-1 font-medium">{post.title}</div>
+                  <div className="mt-0.5 text-xs text-muted-foreground">/{post.slug}</div>
+                </TableCell>
+                <TableCell className="hidden text-muted-foreground md:table-cell">
+                  {post.author.name}
+                </TableCell>
+                <TableCell>
+                  <StatusBadge status={post.status} />
+                </TableCell>
+                <TableCell className="hidden text-muted-foreground sm:table-cell">
+                  {post.publishedAt ? new Date(post.publishedAt).toLocaleDateString() : "—"}
+                </TableCell>
+                <TableCell className="text-right">
+                  <Link
+                    href={`/admin/posts/${post.id}`}
+                    className="text-xs font-medium text-muted-foreground hover:text-foreground"
+                  >
+                    Edit
+                  </Link>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
       )}
 
-      {/* Simple pagination */}
       {data && data.meta.totalPages > 1 && (
-        <div className="flex justify-center gap-2 mt-6">
-          {page > 1 && (
-            <a
-              href={`/admin/posts?page=${page - 1}${status ? `&status=${status}` : ""}`}
-            >
-              <Button variant="outline" size="sm">
-                Previous
-              </Button>
-            </a>
-          )}
-          <span className="text-sm text-muted-foreground self-center">
+        <div className="flex items-center justify-between border-t pt-4 text-sm text-muted-foreground">
+          <span>
             Page {page} of {data.meta.totalPages}
           </span>
-          {page < data.meta.totalPages && (
-            <a
-              href={`/admin/posts?page=${page + 1}${status ? `&status=${status}` : ""}`}
-            >
-              <Button variant="outline" size="sm">
-                Next
+          <div className="flex gap-2">
+            {page > 1 && (
+              <Button asChild variant="outline" size="sm">
+                <Link href={`/admin/posts?page=${page - 1}${status ? `&status=${status}` : ""}`}>
+                  Previous
+                </Link>
               </Button>
-            </a>
-          )}
+            )}
+            {page < data.meta.totalPages && (
+              <Button asChild variant="outline" size="sm">
+                <Link href={`/admin/posts?page=${page + 1}${status ? `&status=${status}` : ""}`}>
+                  Next
+                </Link>
+              </Button>
+            )}
+          </div>
         </div>
       )}
     </div>
   );
-}
-
-function StatusBadge({ status }: { status: PostDetail["status"] }) {
-  const variants: Record<
-    PostDetail["status"],
-    "default" | "secondary" | "outline" | "destructive"
-  > = {
-    published: "default",
-    draft: "secondary",
-    scheduled: "outline",
-    archived: "destructive",
-  };
-  return <Badge variant={variants[status]}>{status}</Badge>;
 }
 
 async function fetchAdminPosts(params: { status?: string; page: number }) {

@@ -1,5 +1,17 @@
 import { cookies } from "next/headers";
-import { Card, CardContent, CardHeader } from "@repo/ui";
+import { Users as UsersIcon } from "lucide-react";
+import {
+  Button,
+  Input,
+  Table,
+  TableHeader,
+  TableBody,
+  TableRow,
+  TableHead,
+  TableCell,
+} from "@repo/ui";
+import { PageHeader } from "@/components/PageHeader";
+import { StatusBadge } from "@/components/StatusBadge";
 import { UserActions } from "./UserActions";
 
 interface User {
@@ -32,19 +44,6 @@ async function fetchUsers(search?: string, role?: string): Promise<UsersResponse
   } catch { return null; }
 }
 
-const roleColors: Record<string, string> = {
-  admin: "bg-red-100 text-red-700",
-  editor: "bg-purple-100 text-purple-700",
-  author: "bg-blue-100 text-blue-700",
-  subscriber: "bg-gray-100 text-gray-700",
-};
-
-const statusColors: Record<string, string> = {
-  active: "bg-green-100 text-green-700",
-  suspended: "bg-yellow-100 text-yellow-700",
-  banned: "bg-red-100 text-red-700",
-};
-
 export default async function UsersPage({
   searchParams,
 }: {
@@ -54,86 +53,71 @@ export default async function UsersPage({
   const result = await fetchUsers(search, role);
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold">Users</h1>
-          <p className="text-muted-foreground text-sm mt-1">
-            {result?.meta.total ?? 0} total users
-          </p>
-        </div>
-      </div>
+    <div className="space-y-5">
+      <PageHeader title="Users" description={`${result?.meta.total ?? 0} total users`} />
 
-      <Card>
-        <CardHeader className="pb-3">
-          <form className="flex gap-2 flex-wrap">
-            <input
-              name="search"
-              defaultValue={search}
-              placeholder="Search by name or email..."
-              className="border rounded-md px-3 py-1.5 text-sm flex-1 min-w-[200px]"
-            />
-            <select
-              name="role"
-              defaultValue={role ?? ""}
-              className="border rounded-md px-3 py-1.5 text-sm"
-            >
-              <option value="">All roles</option>
-              <option value="admin">Admin</option>
-              <option value="editor">Editor</option>
-              <option value="author">Author</option>
-              <option value="subscriber">Subscriber</option>
-            </select>
-            <button type="submit" className="border rounded-md px-3 py-1.5 text-sm bg-primary text-primary-foreground">
-              Filter
-            </button>
-          </form>
-        </CardHeader>
-        <CardContent>
-          {!result || result.data.length === 0 ? (
-            <p className="text-muted-foreground text-sm py-8 text-center">No users found.</p>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b text-left text-muted-foreground">
-                    <th className="pb-2 pr-4 font-medium">Name</th>
-                    <th className="pb-2 pr-4 font-medium">Email</th>
-                    <th className="pb-2 pr-4 font-medium">Role</th>
-                    <th className="pb-2 pr-4 font-medium">Status</th>
-                    <th className="pb-2 pr-4 font-medium">Joined</th>
-                    <th className="pb-2 font-medium">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {result.data.map((user) => (
-                    <tr key={user.id} className="border-b last:border-0 hover:bg-muted/30">
-                      <td className="py-3 pr-4 font-medium">{user.name}</td>
-                      <td className="py-3 pr-4 text-muted-foreground">{user.email}</td>
-                      <td className="py-3 pr-4">
-                        <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${roleColors[user.role] ?? ""}`}>
-                          {user.role}
-                        </span>
-                      </td>
-                      <td className="py-3 pr-4">
-                        <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${statusColors[user.status] ?? ""}`}>
-                          {user.status}
-                        </span>
-                      </td>
-                      <td className="py-3 pr-4 text-muted-foreground">
-                        {new Date(user.createdAt).toLocaleDateString()}
-                      </td>
-                      <td className="py-3">
-                        <UserActions userId={user.id} currentRole={user.role} currentStatus={user.status} />
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+      <form className="flex flex-wrap gap-2">
+        <Input
+          name="search"
+          defaultValue={search}
+          placeholder="Search by name or email…"
+          className="h-8 w-64 text-sm"
+        />
+        <select
+          name="role"
+          defaultValue={role ?? ""}
+          className="h-8 rounded-md border bg-background px-2 text-sm"
+        >
+          <option value="">All roles</option>
+          <option value="admin">Admin</option>
+          <option value="editor">Editor</option>
+          <option value="author">Author</option>
+          <option value="subscriber">Subscriber</option>
+        </select>
+        <Button type="submit" variant="outline" size="sm">
+          Filter
+        </Button>
+      </form>
+
+      {!result || result.data.length === 0 ? (
+        <div className="flex flex-col items-center gap-2 rounded-lg border border-dashed py-12 text-center">
+          <UsersIcon className="size-8 text-muted-foreground/60" />
+          <p className="text-sm text-muted-foreground">No users found.</p>
+        </div>
+      ) : (
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Name</TableHead>
+              <TableHead>Email</TableHead>
+              <TableHead>Role</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead className="hidden sm:table-cell">Joined</TableHead>
+              <TableHead>Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {result.data.map((user) => (
+              <TableRow key={user.id}>
+                <TableCell className="font-medium">{user.name}</TableCell>
+                <TableCell className="text-muted-foreground">{user.email}</TableCell>
+                <TableCell>
+                  <StatusBadge status={user.role} />
+                </TableCell>
+                <TableCell>
+                  <StatusBadge status={user.status} />
+                </TableCell>
+                <TableCell className="hidden text-muted-foreground sm:table-cell">
+                  {new Date(user.createdAt).toLocaleDateString()}
+                </TableCell>
+                <TableCell>
+                  <UserActions userId={user.id} currentRole={user.role} currentStatus={user.status} />
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      )}
     </div>
   );
 }

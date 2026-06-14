@@ -2,6 +2,12 @@
 @plugin "tailwindcss-animate";
 @import "@repo/ui/globals.css";
 
+/*
+ * Tailwind v4 only auto-scans the app's own directory — without this,
+ * utilities used only inside @repo/ui components are never generated.
+ */
+@source "../../../../packages/ui/src";
+
 /* ── Web-specific overrides ─────────────────────────────────────────────── */
 
 /* Prose styles for blog post content (Tiptap HTML output) */

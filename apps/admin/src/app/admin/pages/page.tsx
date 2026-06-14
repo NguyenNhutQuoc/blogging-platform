@@ -1,5 +1,17 @@
 import { cookies } from "next/headers";
-import { Card, CardContent, Button } from "@repo/ui";
+import Link from "next/link";
+import { Files } from "lucide-react";
+import {
+  Button,
+  Table,
+  TableHeader,
+  TableBody,
+  TableRow,
+  TableHead,
+  TableCell,
+} from "@repo/ui";
+import { PageHeader } from "@/components/PageHeader";
+import { StatusBadge } from "@/components/StatusBadge";
 import { DeletePageButton } from "./DeletePageButton";
 
 interface Page {
@@ -28,58 +40,63 @@ export default async function PagesPage() {
   const pages = await fetchPages();
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold">Pages</h1>
-          <p className="text-muted-foreground text-sm mt-1">Static content pages (About, Privacy Policy, ToS…)</p>
-        </div>
-        <Button asChild>
-          <a href="/admin/pages/new">New Page</a>
-        </Button>
-      </div>
+    <div className="space-y-5">
+      <PageHeader
+        title="Pages"
+        description="Static content pages (About, Privacy Policy, ToS…)"
+        actions={
+          <Button asChild size="sm">
+            <Link href="/admin/pages/new">New page</Link>
+          </Button>
+        }
+      />
 
-      <Card>
-        <CardContent className="pt-4">
-          {pages.length === 0 ? (
-            <p className="text-muted-foreground text-sm py-8 text-center">
-              No pages yet. <a href="/admin/pages/new" className="text-primary hover:underline">Create one</a>.
-            </p>
-          ) : (
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b text-left text-muted-foreground">
-                  <th className="pb-2 pr-4 font-medium">Title</th>
-                  <th className="pb-2 pr-4 font-medium">Slug</th>
-                  <th className="pb-2 pr-4 font-medium">Status</th>
-                  <th className="pb-2 pr-4 font-medium">Updated</th>
-                  <th className="pb-2 font-medium">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {pages.map((page) => (
-                  <tr key={page.id} className="border-b last:border-0 hover:bg-muted/30">
-                    <td className="py-3 pr-4 font-medium">{page.title}</td>
-                    <td className="py-3 pr-4 text-muted-foreground font-mono text-xs">{page.slug}</td>
-                    <td className="py-3 pr-4">
-                      <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${page.status === "published" ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-700"}`}>
-                        {page.status}
-                      </span>
-                    </td>
-                    <td className="py-3 pr-4 text-muted-foreground">{new Date(page.updatedAt).toLocaleDateString()}</td>
-                    <td className="py-3">
-                      <div className="flex items-center gap-2">
-                        <a href={`/admin/pages/${page.id}`} className="text-xs text-primary hover:underline">Edit</a>
-                        <DeletePageButton pageId={page.id} />
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
-        </CardContent>
-      </Card>
+      {pages.length === 0 ? (
+        <div className="flex flex-col items-center gap-2 rounded-lg border border-dashed py-12 text-center">
+          <Files className="size-8 text-muted-foreground/60" />
+          <p className="text-sm text-muted-foreground">No pages yet.</p>
+          <Button asChild variant="outline" size="sm" className="mt-1">
+            <Link href="/admin/pages/new">Create one</Link>
+          </Button>
+        </div>
+      ) : (
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Title</TableHead>
+              <TableHead>Slug</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead className="hidden sm:table-cell">Updated</TableHead>
+              <TableHead>Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {pages.map((page) => (
+              <TableRow key={page.id}>
+                <TableCell className="font-medium">{page.title}</TableCell>
+                <TableCell className="font-mono text-xs text-muted-foreground">{page.slug}</TableCell>
+                <TableCell>
+                  <StatusBadge status={page.status} />
+                </TableCell>
+                <TableCell className="hidden text-muted-foreground sm:table-cell">
+                  {new Date(page.updatedAt).toLocaleDateString()}
+                </TableCell>
+                <TableCell>
+                  <div className="flex items-center gap-2">
+                    <Link
+                      href={`/admin/pages/${page.id}`}
+                      className="text-xs font-medium text-muted-foreground hover:text-foreground"
+                    >
+                      Edit
+                    </Link>
+                    <DeletePageButton pageId={page.id} />
+                  </div>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      )}
     </div>
   );
 }

@@ -1,5 +1,5 @@
 import { cookies } from "next/headers";
-import { Card, CardContent, CardHeader } from "@repo/ui";
+import { PageHeader } from "@/components/PageHeader";
 import { SettingsForm } from "./SettingsForm";
 
 const DEFAULT_SETTINGS = {
@@ -31,20 +31,18 @@ export default async function SettingsPage() {
   const settings = await fetchSettings();
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold">Site Settings</h1>
-        <p className="text-muted-foreground text-sm mt-1">Configure your blog platform</p>
-      </div>
+    <div className="max-w-2xl space-y-5">
+      <PageHeader title="Site Settings" description="Configure your blog platform" />
 
-      <Card>
-        <CardHeader>
-          <h2 className="font-semibold">General</h2>
-        </CardHeader>
-        <CardContent>
-          <SettingsForm settings={settings} />
-        </CardContent>
-      </Card>
+      <div className="rounded-lg border">
+        <div className="border-b px-4 py-3">
+          <h2 className="text-sm font-medium">General</h2>
+          <p className="mt-0.5 text-xs text-muted-foreground">
+            Site identity and global behaviour
+          </p>
+        </div>
+        <SettingsForm settings={settings} />
+      </div>
     </div>
   );
 }

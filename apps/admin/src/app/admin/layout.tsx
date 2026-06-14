@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
-import { AdminNav } from "@/components/AdminNav";
+import { AppShell } from "@/components/AppShell";
 
 /**
  * Admin section layout.
@@ -18,14 +18,7 @@ export default async function AdminLayout({
   const session = await getSession();
   if (!session) redirect("/login");
 
-  return (
-    <div className="min-h-screen flex flex-col">
-      <AdminNav user={session.user} />
-      <main className="flex-1 container mx-auto px-4 py-6 max-w-6xl">
-        {children}
-      </main>
-    </div>
-  );
+  return <AppShell user={session.user}>{children}</AppShell>;
 }
 
 type SessionUser = { id: string; name: string; email: string; role?: string };

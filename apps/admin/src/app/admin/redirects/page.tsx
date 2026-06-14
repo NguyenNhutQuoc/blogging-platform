@@ -1,5 +1,16 @@
 import { cookies } from "next/headers";
-import { Card, CardContent } from "@repo/ui";
+import { ArrowRightLeft } from "lucide-react";
+import {
+  Badge,
+  Table,
+  TableHeader,
+  TableBody,
+  TableRow,
+  TableHead,
+  TableCell,
+} from "@repo/ui";
+import { PageHeader } from "@/components/PageHeader";
+import { StatusBadge } from "@/components/StatusBadge";
 import { DeleteRedirectButton } from "./DeleteRedirectButton";
 import { RedirectForm } from "./RedirectForm";
 
@@ -30,52 +41,51 @@ export default async function RedirectsPage() {
   const redirects = await fetchRedirects();
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold">Redirects</h1>
-        <p className="text-muted-foreground text-sm mt-1">Manage URL redirects (301/302). Handled at the API layer.</p>
-      </div>
+    <div className="space-y-5">
+      <PageHeader
+        title="Redirects"
+        description="Manage URL redirects (301/302), handled at the API layer"
+      />
 
       <RedirectForm />
 
-      <Card>
-        <CardContent className="pt-4">
-          {redirects.length === 0 ? (
-            <p className="text-muted-foreground text-sm py-8 text-center">No redirects configured.</p>
-          ) : (
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b text-left text-muted-foreground">
-                  <th className="pb-2 pr-4 font-medium">From</th>
-                  <th className="pb-2 pr-4 font-medium">To</th>
-                  <th className="pb-2 pr-4 font-medium">Code</th>
-                  <th className="pb-2 pr-4 font-medium">Status</th>
-                  <th className="pb-2 font-medium">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {redirects.map((r) => (
-                  <tr key={r.id} className="border-b last:border-0 hover:bg-muted/30">
-                    <td className="py-3 pr-4 font-mono text-xs">{r.fromPath}</td>
-                    <td className="py-3 pr-4 font-mono text-xs text-muted-foreground">{r.toPath}</td>
-                    <td className="py-3 pr-4">
-                      <span className="px-2 py-0.5 rounded bg-blue-100 text-blue-700 text-xs font-mono">{r.statusCode}</span>
-                    </td>
-                    <td className="py-3 pr-4">
-                      <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${r.isActive ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-500"}`}>
-                        {r.isActive ? "active" : "inactive"}
-                      </span>
-                    </td>
-                    <td className="py-3">
-                      <DeleteRedirectButton redirectId={r.id} />
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
-        </CardContent>
-      </Card>
+      {redirects.length === 0 ? (
+        <div className="flex flex-col items-center gap-2 rounded-lg border border-dashed py-12 text-center">
+          <ArrowRightLeft className="size-8 text-muted-foreground/60" />
+          <p className="text-sm text-muted-foreground">No redirects configured.</p>
+        </div>
+      ) : (
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>From</TableHead>
+              <TableHead>To</TableHead>
+              <TableHead>Code</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead>Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {redirects.map((r) => (
+              <TableRow key={r.id}>
+                <TableCell className="font-mono text-xs">{r.fromPath}</TableCell>
+                <TableCell className="font-mono text-xs text-muted-foreground">{r.toPath}</TableCell>
+                <TableCell>
+                  <Badge variant="outline" className="font-mono text-[11px]">
+                    {r.statusCode}
+                  </Badge>
+                </TableCell>
+                <TableCell>
+                  <StatusBadge status={r.isActive ? "active" : "inactive"} />
+                </TableCell>
+                <TableCell>
+                  <DeleteRedirectButton redirectId={r.id} />
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      )}
     </div>
   );
 }

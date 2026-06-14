@@ -42,7 +42,7 @@ export function UserActions({ userId, currentRole, currentStatus }: UserActionsP
         defaultValue={currentRole}
         disabled={loading}
         onChange={(e) => changeRole(e.target.value)}
-        className="border rounded px-1.5 py-0.5 text-xs"
+        className="h-7 rounded-md border bg-background px-2 text-xs"
       >
         <option value="subscriber">subscriber</option>
         <option value="author">author</option>
@@ -50,13 +50,13 @@ export function UserActions({ userId, currentRole, currentStatus }: UserActionsP
         <option value="admin">admin</option>
       </select>
       {currentStatus === "active" ? (
-        <Button variant="ghost" size="sm" disabled={loading} onClick={() => changeStatus("suspended")}
-          className="text-xs h-6 px-2 text-yellow-600 hover:text-yellow-700">
+        <Button variant="ghost" size="xs" loading={loading} onClick={() => changeStatus("suspended")}
+          className="text-amber-600 hover:text-amber-700 dark:text-amber-400 dark:hover:text-amber-300">
           Suspend
         </Button>
       ) : (
-        <Button variant="ghost" size="sm" disabled={loading} onClick={() => changeStatus("active")}
-          className="text-xs h-6 px-2 text-green-600 hover:text-green-700">
+        <Button variant="ghost" size="xs" loading={loading} onClick={() => changeStatus("active")}
+          className="text-emerald-600 hover:text-emerald-700 dark:text-emerald-400 dark:hover:text-emerald-300">
           Restore
         </Button>
       )}

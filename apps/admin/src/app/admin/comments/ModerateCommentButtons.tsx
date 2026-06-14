@@ -33,34 +33,37 @@ export function ModerateCommentButtons({
     <div className="flex items-center gap-1 shrink-0">
       {currentStatus !== "approved" && (
         <Button
-          size="sm"
+          size="xs"
           variant="outline"
-          className="h-7 px-2 text-xs text-green-700 border-green-200 hover:bg-green-50"
+          className="text-emerald-600 hover:text-emerald-700 dark:text-emerald-400 dark:hover:text-emerald-300"
           onClick={() => moderate("approved")}
           disabled={!!loading}
+          loading={loading === "approved"}
         >
-          {loading === "approved" ? "…" : "Approve"}
+          Approve
         </Button>
       )}
       {currentStatus !== "spam" && (
         <Button
-          size="sm"
+          size="xs"
           variant="outline"
-          className="h-7 px-2 text-xs text-orange-700 border-orange-200 hover:bg-orange-50"
+          className="text-amber-600 hover:text-amber-700 dark:text-amber-400 dark:hover:text-amber-300"
           onClick={() => moderate("spam")}
           disabled={!!loading}
+          loading={loading === "spam"}
         >
-          {loading === "spam" ? "…" : "Spam"}
+          Spam
         </Button>
       )}
       <Button
-        size="sm"
+        size="xs"
         variant="ghost"
-        className="h-7 px-2 text-xs text-destructive hover:text-destructive"
+        className="text-destructive hover:text-destructive"
         onClick={() => moderate("deleted")}
         disabled={!!loading}
+        loading={loading === "deleted"}
       >
-        {loading === "deleted" ? "…" : "Delete"}
+        Delete
       </Button>
     </div>
   );
