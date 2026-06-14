@@ -241,8 +241,7 @@ function ToolbarButton({ onClick, active, disabled, title, children }: ToolbarBu
     <Button
       type="button"
       variant={active ? "secondary" : "ghost"}
-      size="icon"
-      className="size-7 [&_svg]:size-4"
+      size="icon-xs"
       onClick={onClick}
       disabled={disabled}
       title={title}

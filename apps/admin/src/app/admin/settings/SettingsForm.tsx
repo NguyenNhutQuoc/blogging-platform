@@ -66,7 +66,7 @@ export function SettingsForm({ settings }: SettingsFormProps) {
       </div>
 
       <div className="flex items-center gap-3 border-t bg-muted/40 px-4 py-3">
-        <Button type="submit" size="sm" disabled={saving}>
+        <Button type="submit" size="sm" loading={saving}>
           {saving ? "Saving…" : "Save settings"}
         </Button>
         {saved && <span className="text-sm font-medium text-emerald-600 dark:text-emerald-400">Saved!</span>}

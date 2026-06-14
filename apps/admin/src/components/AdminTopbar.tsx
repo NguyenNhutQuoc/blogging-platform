@@ -60,8 +60,8 @@ export function AdminTopbar({
       <div className="flex items-center gap-2">
         <Button
           variant="ghost"
-          size="icon"
-          className="size-8 md:hidden"
+          size="icon-sm"
+          className="md:hidden"
           onClick={onMenuClick}
           aria-label="Open navigation"
         >
@@ -74,7 +74,7 @@ export function AdminTopbar({
         <ThemeToggle />
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <button className="rounded-full outline-none ring-ring focus-visible:ring-2" aria-label="User menu">
+            <button className="rounded-full outline-none transition-all focus-visible:ring-[3px] focus-visible:ring-ring/50" aria-label="User menu">
               <Avatar className="size-8">
                 <AvatarFallback className="text-xs">{initials(user.name)}</AvatarFallback>
               </Avatar>

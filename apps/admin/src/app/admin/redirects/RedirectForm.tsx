@@ -70,7 +70,7 @@ export function RedirectForm() {
             <option value={302}>302 Temporary</option>
           </select>
         </div>
-        <Button type="submit" size="sm" disabled={loading}>
+        <Button type="submit" size="sm" loading={loading}>
           {loading ? "Adding…" : "Add redirect"}
         </Button>
         {error && <p className="w-full text-xs text-destructive">{error}</p>}

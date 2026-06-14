@@ -164,17 +164,8 @@ export default function LoginPage() {
               </div>
             )}
 
-            <Button type="submit" className="w-full h-10" disabled={loading}>
-              {loading ? (
-                <span className="flex items-center gap-2">
-                  <svg className="animate-spin w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M21 12a9 9 0 1 1-6.219-8.56" />
-                  </svg>
-                  Signing in…
-                </span>
-              ) : (
-                "Sign in"
-              )}
+            <Button type="submit" size="lg" className="w-full" loading={loading}>
+              {loading ? "Signing in…" : "Sign in"}
             </Button>
           </form>
 

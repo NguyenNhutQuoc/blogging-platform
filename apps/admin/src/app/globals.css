@@ -3,6 +3,12 @@
 @import "@repo/ui/globals.css";
 
 /*
+ * Tailwind v4 only auto-scans the app's own directory — without this,
+ * utilities used only inside @repo/ui components are never generated.
+ */
+@source "../../../../packages/ui/src";
+
+/*
  * Make dark: utilities follow the .dark class set by the theme toggle
  * instead of the OS prefers-color-scheme default in Tailwind v4.
  */

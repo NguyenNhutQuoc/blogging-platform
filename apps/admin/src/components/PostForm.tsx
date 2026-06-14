@@ -210,10 +210,10 @@ export function PostForm({ post }: PostFormProps) {
               <Button
                 type="button"
                 size="sm"
-                disabled={saving}
+                loading={saving}
                 onClick={() => void submit("publish")}
               >
-                {saving ? "Saving…" : post?.status === "published" ? "Update" : "Publish"}
+                {post?.status === "published" ? "Update" : "Publish"}
               </Button>
               <Button
                 type="button"
@@ -226,13 +226,15 @@ export function PostForm({ post }: PostFormProps) {
               </Button>
             </div>
 
-            <button
+            <Button
               type="button"
-              className="text-xs text-muted-foreground hover:text-foreground"
+              variant="link"
+              size="xs"
+              className="h-auto self-start p-0 text-muted-foreground hover:text-foreground"
               onClick={() => setShowSchedule(!showSchedule)}
             >
               {showSchedule ? "Hide schedule" : "Schedule…"}
-            </button>
+            </Button>
             {showSchedule && (
               <div className="space-y-2">
                 <Input
@@ -282,7 +284,7 @@ export function PostForm({ post }: PostFormProps) {
           <div className="rounded-lg border">
             <button
               type="button"
-              className="flex w-full items-center justify-between px-4 py-2.5 text-sm font-medium"
+              className="flex w-full items-center justify-between rounded-lg px-4 py-2.5 text-sm font-medium outline-none transition-colors hover:bg-accent/50 focus-visible:ring-[3px] focus-visible:ring-ring/50"
               onClick={() => setShowSeo(!showSeo)}
             >
               SEO

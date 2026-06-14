@@ -20,8 +20,8 @@ export function DeleteRedirectButton({ redirectId }: { redirectId: string }) {
   }
 
   return (
-    <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive h-7 px-2 text-xs" onClick={handleDelete} disabled={loading}>
-      {loading ? "…" : "Delete"}
+    <Button variant="ghost" size="xs" className="text-destructive hover:text-destructive" onClick={handleDelete} loading={loading}>
+      Delete
     </Button>
   );
 }
