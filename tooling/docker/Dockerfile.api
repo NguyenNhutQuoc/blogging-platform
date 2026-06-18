@@ -1,0 +1,45 @@
+# syntax=docker/dockerfile:1
+#
+# Production image for the API server AND the BullMQ worker.
+# Both run from the same compiled bundle — the container command selects which:
+#   • API server : node dist/index.js   (default)
+#   • Worker     : node dist/worker.js   (override `command` in compose)
+#   • Migrations : node dist/migrate.js  (one-shot, run before the API)
+#
+# Build context MUST be the monorepo root:
+#   docker build -f tooling/docker/Dockerfile.api -t blog-api .
+
+# ── Base ─────────────────────────────────────────────────────────────────────
+FROM node:20-alpine AS base
+# libc6-compat: sharp's prebuilt binaries need glibc shims on Alpine
+RUN apk add --no-cache libc6-compat
+RUN corepack enable
+WORKDIR /repo
+
+# ── Build ────────────────────────────────────────────────────────────────────
+FROM base AS build
+COPY . .
+RUN --mount=type=cache,id=pnpm,target=/root/.local/share/pnpm/store \
+    pnpm install --frozen-lockfile
+# tsup bundles @repo/* workspace code; npm deps stay external (installed below)
+RUN pnpm --filter @repo/api build
+# Prune to a self-contained production deployable (prod deps only, no drizzle-kit)
+RUN pnpm --filter=@repo/api --prod --legacy deploy /deploy
+
+# ── Runtime ──────────────────────────────────────────────────────────────────
+FROM base AS runtime
+WORKDIR /app
+ENV NODE_ENV=production
+# "type": "module" lives in the API package.json — required for the ESM bundle
+COPY --from=build /deploy/package.json ./package.json
+COPY --from=build /deploy/node_modules ./node_modules
+COPY --from=build /repo/apps/api/dist ./dist
+# Migration SQL files — read at runtime by dist/migrate.js
+COPY --from=build /repo/packages/database/migrations ./dist/migrations
+
+USER node
+EXPOSE 3003
+HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
+  CMD wget -qO- http://127.0.0.1:3003/api/v1/health || exit 1
+
+CMD ["node", "dist/index.js"]

@@ -1,0 +1,157 @@
+name: blog-platform-prod
+
+# Production stack. Reads secrets from .env.production (NEVER commit that file).
+#   cp .env.production.example .env.production   # then fill in real secrets
+#   docker compose -f docker-compose.prod.yml up -d --build
+#
+# Topology:
+#   postgres ─┬─ migrate (one-shot) ─┬─ api ──┬─ web
+#             │                      └─ worker └─ admin
+#   redis ────┘
+#   db-backup (scheduled pg_dump)
+#
+# In a managed-infra deployment, drop the `postgres`/`redis` services and point
+# DATABASE_URL / REDIS_URL at your managed instances.
+
+x-api-build: &api-build
+  context: .
+  dockerfile: tooling/docker/Dockerfile.api
+
+services:
+  # ── Data stores ────────────────────────────────────────────────────────────
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set in .env.production}
+      POSTGRES_DB: ${POSTGRES_DB:-blog_platform}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    # Not published to the host in production — only reachable on the internal network.
+    expose:
+      - "5432"
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    # appendonly keeps queued BullMQ jobs across restarts (cache rebuilds itself)
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    expose:
+      - "6379"
+
+  # ── One-shot DB migration (runs to completion before api/worker start) ───────
+  migrate:
+    build: *api-build
+    image: blog-api:latest
+    command: ["node", "dist/migrate.js"]
+    env_file: [.env.production]
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: "no"
+
+  # ── API server ───────────────────────────────────────────────────────────────
+  api:
+    build: *api-build
+    image: blog-api:latest
+    restart: unless-stopped
+    env_file: [.env.production]
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+    expose:
+      - "3003"
+
+  # ── BullMQ worker (same image, different entrypoint) ─────────────────────────
+  worker:
+    build: *api-build
+    image: blog-api:latest
+    restart: unless-stopped
+    command: ["node", "dist/worker.js"]
+    env_file: [.env.production]
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+
+  # ── Public blog (Next.js) ────────────────────────────────────────────────────
+  web:
+    build:
+      context: .
+      dockerfile: tooling/docker/Dockerfile.web
+      args:
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-}
+        NEXT_PUBLIC_ADMIN_URL: ${NEXT_PUBLIC_ADMIN_URL:-}
+    image: blog-web:latest
+    restart: unless-stopped
+    # proxy.ts forwards /api/* to the API over the internal network
+    environment:
+      API_URL: http://api:3003
+      NODE_ENV: production
+    depends_on:
+      - api
+    ports:
+      - "3000:3000"
+
+  # ── Admin dashboard (Next.js) ────────────────────────────────────────────────
+  admin:
+    build:
+      context: .
+      dockerfile: tooling/docker/Dockerfile.admin
+      args:
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-}
+        NEXT_PUBLIC_ADMIN_URL: ${NEXT_PUBLIC_ADMIN_URL:-}
+    image: blog-admin:latest
+    restart: unless-stopped
+    environment:
+      API_URL: http://api:3003
+      NODE_ENV: production
+    depends_on:
+      - api
+    ports:
+      - "3002:3002"
+
+  # ── Scheduled database backups (local volume + retention) ────────────────────
+  # Off-site S3 backups: see tooling/scripts/backup-db.sh (run from host cron/CI).
+  db-backup:
+    image: prodrigestivill/postgres-backup-local:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_HOST: postgres
+      POSTGRES_DB: ${POSTGRES_DB:-blog_platform}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set in .env.production}
+      SCHEDULE: "@daily"        # 02:00 UTC by default; override with cron expr
+      TZ: UTC
+      BACKUP_KEEP_DAYS: 30
+      BACKUP_KEEP_WEEKS: 4
+      BACKUP_KEEP_MONTHS: 6
+    volumes:
+      - ./backups:/backups
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+volumes:
+  postgres_data:
+  redis_data:

@@ -14,6 +14,7 @@ Monorepo cho một nền tảng blog đa tác giả, bao gồm REST API, public 
 - [Tạo một feature mới — từ A đến Z](#tạo-một-feature-mới--từ-a-đến-z)
 - [Viết test](#viết-test)
 - [Quy ước code](#quy-ước-code)
+- [Triển khai production](#triển-khai-production)
 - [Các câu hỏi thường gặp](#các-câu-hỏi-thường-gặp)
 
 ---
@@ -691,6 +692,37 @@ await db.update(posts).set({ deletedAt: new Date() }).where(eq(posts.id, id));
 // ❌ Sai
 await db.delete(posts).where(eq(posts.id, id));
 ```
+
+---
+
+## Triển khai production
+
+Phase 6 cung cấp đầy đủ hạ tầng production. Chi tiết runbook xem
+[`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md). Tóm tắt nhanh:
+
+```bash
+# 1. Tạo file secrets từ template (KHÔNG commit .env.production)
+cp .env.production.example .env.production    # rồi điền secrets thật
+
+# 2. Build + chạy toàn bộ stack production (api, worker, web, admin, db, redis, backup)
+docker compose -f docker-compose.prod.yml --env-file .env.production up -d --build
+
+# 3. Kiểm tra
+curl -fsS http://localhost:3003/api/v1/health | jq
+```
+
+- **Containers tách biệt:** API server, BullMQ worker, migrate (one-shot), web,
+  admin — mỗi cái scale độc lập. Dockerfile ở `tooling/docker/`.
+- **Migrations:** chạy tự động qua container `migrate` (`node dist/migrate.js`),
+  không cần `drizzle-kit` ở production.
+- **Caching:** Redis cache cho các public read paths (xem `apps/api/src/lib/cache.ts`).
+- **Backup:** `tooling/scripts/backup-db.sh` (pg_dump → S3, retention 30 ngày) +
+  service `db-backup`. Restore: `tooling/scripts/restore-db.sh`.
+- **Monitoring:** Sentry-ready (`apps/api/src/lib/observability.ts`), bật bằng
+  `SENTRY_DSN`.
+- **CI/CD:** `.github/workflows/ci.yml` (gate PR) + `deploy.yml` (build & push
+  Docker images lên GHCR).
+- **Load testing:** `k6 run tooling/scripts/load-test.js`.
 
 ---
 

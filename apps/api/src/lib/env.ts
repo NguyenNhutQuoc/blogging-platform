@@ -57,6 +57,10 @@ export const env = {
 
   ANALYTICS_SALT: optionalEnv("ANALYTICS_SALT", "dev-salt"),
 
+  LOG_LEVEL: optionalEnv("LOG_LEVEL", "info"),
+  /** Error-monitoring DSN. Empty = monitoring disabled (no-op). */
+  SENTRY_DSN: optionalEnv("SENTRY_DSN", ""),
+
   STRIPE_SECRET_KEY: optionalEnv("STRIPE_SECRET_KEY", ""),
   STRIPE_WEBHOOK_SECRET: optionalEnv("STRIPE_WEBHOOK_SECRET", ""),
   STRIPE_PUBLISHABLE_KEY: optionalEnv("STRIPE_PUBLISHABLE_KEY", ""),
@@ -81,3 +85,46 @@ export const env = {
     return this.NODE_ENV === "test";
   },
 } as const;
+
+/**
+ * Fail fast on insecure or missing configuration in production.
+ *
+ * Runs at module load — because env.ts is the first import in every entry
+ * point (index.ts / worker.ts / migrate.ts), a misconfigured container exits
+ * immediately with a clear message instead of booting in an unsafe state.
+ * Dev and test keep their convenient defaults (this block is skipped).
+ */
+function validateProductionEnv(): void {
+  if (env.NODE_ENV !== "production") return;
+
+  const errors: string[] = [];
+
+  if (!env.DATABASE_URL) {
+    errors.push("DATABASE_URL is required in production.");
+  }
+  if (
+    !env.BETTER_AUTH_SECRET ||
+    env.BETTER_AUTH_SECRET === "dev-secret-change-in-production" ||
+    env.BETTER_AUTH_SECRET.length < 32
+  ) {
+    errors.push(
+      "BETTER_AUTH_SECRET must be set to a unique value of at least 32 characters.",
+    );
+  }
+
+  if (errors.length > 0) {
+    throw new Error(
+      `[env] Invalid production configuration:\n  - ${errors.join("\n  - ")}`,
+    );
+  }
+
+  // Non-fatal hardening warnings — log but allow boot.
+  if (env.ANALYTICS_SALT === "dev-salt") {
+    console.warn("[env] WARNING: ANALYTICS_SALT is the dev default; set a unique salt.");
+  }
+  if (/localhost/.test(env.CORS_ORIGINS)) {
+    console.warn("[env] WARNING: CORS_ORIGINS still allows localhost in production.");
+  }
+}
+
+validateProductionEnv();

@@ -2,6 +2,7 @@ import { Worker } from "bullmq";
 import { redis } from "../../lib/redis.js";
 import { QUEUE_NAMES } from "@repo/shared/constants";
 import { db } from "../../lib/db.js";
+import { invalidatePostCache } from "../../lib/cache.js";
 import { posts } from "@repo/database/schema";
 import { eq, lte, and } from "drizzle-orm";
 
@@ -42,6 +43,9 @@ export const scheduledPostWorker = new Worker(
 
       console.log(`[ScheduledPostWorker] Published post: ${post.title} (${post.id})`);
     }
+
+    // Newly published posts must appear in cached public listings/details.
+    await invalidatePostCache();
   },
   { connection: redis, concurrency: 1 }
 );

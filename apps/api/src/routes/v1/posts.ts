@@ -2,6 +2,13 @@ import { createRoute, OpenAPIHono, z } from "@hono/zod-openapi";
 import { requireAuth } from "../../middleware/auth.js";
 import { auth } from "../../lib/auth.js";
 import { AppError } from "../../lib/errors.js";
+import {
+  CacheKeys,
+  getCached,
+  readCached,
+  setCached,
+  invalidatePostCache,
+} from "../../lib/cache.js";
 import * as postsService from "../../services/posts.js";
 import {
   createPostSchema,
@@ -134,8 +141,18 @@ const listPostsRoute = createRoute({
 
 router.openapi(listPostsRoute, async (c) => {
   const query = c.req.valid("query");
-  const result = await postsService.listPosts(query);
-  return c.json({ success: true as const, data: result.data.map(serializePost), meta: result.meta }, 200);
+  // Cache the serialised listing payload, keyed by the exact query. Short TTL
+  // bounds staleness; mutations invalidate the whole namespace immediately.
+  const cacheKey = CacheKeys.postsList + (c.req.url.split("?")[1] ?? "");
+  const payload = await getCached(
+    cacheKey,
+    async () => {
+      const result = await postsService.listPosts(query);
+      return { data: result.data.map(serializePost), meta: result.meta };
+    },
+    60,
+  );
+  return c.json({ success: true as const, ...payload }, 200);
 });
 
 // ─── POST /posts ──────────────────────────────────────────────────────────────
@@ -163,6 +180,7 @@ router.openapi(createPostRoute, async (c) => {
 
   if (!post) throw AppError.internal("Failed to retrieve created post");
 
+  await invalidatePostCache();
   return c.json({ success: true as const, data: serializePost(post) }, 201);
 });
 
@@ -181,6 +199,15 @@ const getPostRoute = createRoute({
 
 router.openapi(getPostRoute, async (c) => {
   const { slug } = c.req.valid("param");
+
+  // Fast path: free posts are identical for every viewer, so a cache hit can
+  // be served without touching the DB or resolving the session.
+  const detailKey = CacheKeys.postDetail + slug;
+  const cached = await readCached<ReturnType<typeof serializePost>>(detailKey);
+  if (cached) {
+    return c.json({ success: true as const, data: cached }, 200);
+  }
+
   // Optional auth — authenticated users can access paid content if subscribed
   const session = await auth.api.getSession({ headers: c.req.raw.headers });
   const viewer = session?.user
@@ -190,7 +217,15 @@ router.openapi(getPostRoute, async (c) => {
       }
     : undefined;
   const post = await postsService.getPostBySlug(slug, viewer);
-  return c.json({ success: true as const, data: serializePost(post) }, 200);
+  const data = serializePost(post);
+
+  // Only cache free posts — pro/premium responses are viewer-dependent and
+  // must never be shared across users.
+  if (post.visibility === "free" && post.status === "published") {
+    await setCached(detailKey, data);
+  }
+
+  return c.json({ success: true as const, data }, 200);
 });
 
 // ─── PATCH /posts/:id ─────────────────────────────────────────────────────────
@@ -222,6 +257,7 @@ router.openapi(updatePostRoute, async (c) => {
   );
   if (!post) throw AppError.notFound("Post not found");
 
+  await invalidatePostCache();
   return c.json({ success: true as const, data: serializePost(post) }, 200);
 });
 
@@ -246,6 +282,7 @@ router.openapi(deletePostRoute, async (c) => {
 
   await postsService.deletePost(id, { id: user.id, role: user.role as "admin" | "editor" | "author" | "subscriber" });
 
+  await invalidatePostCache();
   return c.json({ success: true as const }, 200);
 });
 
@@ -271,6 +308,7 @@ router.openapi(publishPostRoute, async (c) => {
   const post = await postsService.publishPost(id, { id: user.id, role: user.role as "admin" | "editor" | "author" | "subscriber" });
   if (!post) throw AppError.notFound("Post not found");
 
+  await invalidatePostCache();
   return c.json({ success: true as const, data: serializePost(post) }, 200);
 });
 
@@ -300,6 +338,7 @@ router.openapi(schedulePostRoute, async (c) => {
   const post = await postsService.schedulePost(id, { id: user.id, role: user.role as "admin" | "editor" | "author" | "subscriber" }, body);
   if (!post) throw AppError.notFound("Post not found");
 
+  await invalidatePostCache();
   return c.json({ success: true as const, data: serializePost(post) }, 200);
 });
 
