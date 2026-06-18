@@ -10,9 +10,14 @@
  */
 // env.ts loads dotenv at module init — must be the first import
 import "./lib/env.js";
+import { initObservability, installGlobalErrorHandlers } from "./lib/observability.js";
 import { registerPublishScheduledCron } from "./jobs/schedules/publish-scheduled.js";
 import { registerAnalyticsRollupCron } from "./jobs/schedules/analytics-rollup.js";
 import { registerNewsletterDispatchCron } from "./jobs/schedules/newsletter-dispatch.js";
+
+// Report crashes in this long-running background process before it exits.
+await initObservability();
+installGlobalErrorHandlers("worker");
 
 // Import workers to register them with BullMQ
 await import("./jobs/workers/index.js");

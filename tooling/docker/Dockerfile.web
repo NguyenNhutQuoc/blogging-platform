@@ -1,0 +1,42 @@
+# syntax=docker/dockerfile:1
+#
+# Production image for the public blog (Next.js, standalone output).
+# Build context MUST be the monorepo root:
+#   docker build -f tooling/docker/Dockerfile.web -t blog-web .
+
+# ── Base ─────────────────────────────────────────────────────────────────────
+FROM node:20-alpine AS base
+RUN apk add --no-cache libc6-compat
+RUN corepack enable
+WORKDIR /repo
+
+# ── Build ────────────────────────────────────────────────────────────────────
+FROM base AS build
+COPY . .
+RUN --mount=type=cache,id=pnpm,target=/root/.local/share/pnpm/store \
+    pnpm install --frozen-lockfile
+# NEXT_PUBLIC_* are inlined into the client bundle at build time.
+# Server-only API_URL (internal service hostname) is provided at runtime.
+ARG NEXT_PUBLIC_API_URL=""
+ARG NEXT_PUBLIC_ADMIN_URL=""
+ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
+ENV NEXT_PUBLIC_ADMIN_URL=${NEXT_PUBLIC_ADMIN_URL}
+RUN pnpm --filter @repo/web build
+
+# ── Runtime ──────────────────────────────────────────────────────────────────
+FROM base AS runtime
+WORKDIR /app
+ENV NODE_ENV=production
+ENV PORT=3000 HOSTNAME=0.0.0.0
+# `output: "standalone"` traces a minimal server bundle. With the monorepo
+# tracing root, the layout is /app/apps/web/server.js + /app/node_modules.
+COPY --from=build /repo/apps/web/.next/standalone ./
+COPY --from=build /repo/apps/web/.next/static ./apps/web/.next/static
+COPY --from=build /repo/apps/web/public ./apps/web/public
+
+USER node
+EXPOSE 3000
+HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
+  CMD wget -qO- http://127.0.0.1:3000/ || exit 1
+
+CMD ["node", "apps/web/server.js"]

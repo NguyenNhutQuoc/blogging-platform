@@ -2,8 +2,13 @@ node_modules/
 .next/
 dist/
 .turbo/
-*.env
+
+# Env files — ignore everything except the committed templates.
+# (`*.env` did NOT match `.env.production`, which would leak real secrets.)
+.env
+.env.*
 !.env.example
+!.env.production.example
 *.log
 coverage/
 .DS_Store

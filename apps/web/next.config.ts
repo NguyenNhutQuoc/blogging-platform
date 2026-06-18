@@ -1,4 +1,8 @@
+import { fileURLToPath } from "node:url";
+import { dirname, join } from "node:path";
 import type { NextConfig } from "next";
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
 
 /**
  * Next.js 16 config.
@@ -7,6 +11,14 @@ import type { NextConfig } from "next";
  * - `use cache` directive is enabled in Next.js 15+ by default.
  */
 const nextConfig: NextConfig = {
+  /**
+   * Emit a self-contained server bundle in `.next/standalone` so the
+   * production Docker image only ships traced dependencies (small image).
+   * `outputFileTracingRoot` points at the monorepo root so the tracer
+   * follows pnpm workspace symlinks (@repo/* packages) correctly.
+   */
+  output: "standalone",
+  outputFileTracingRoot: join(__dirname, "../../"),
   env: {
     NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL ?? process.env.API_URL ?? "http://localhost:3003",
     NEXT_PUBLIC_ADMIN_URL: process.env.NEXT_PUBLIC_ADMIN_URL ?? process.env.ADMIN_URL ?? "http://localhost:3002",

@@ -2,6 +2,10 @@
 import { env } from "./lib/env.js";
 import { serve } from "@hono/node-server";
 import { app } from "./app.js";
+import { initObservability } from "./lib/observability.js";
+
+// Initialise error monitoring (no-op unless SENTRY_DSN is configured)
+await initObservability();
 
 // Start BullMQ workers in the same process (dev mode)
 // In production, run workers separately via: node dist/worker.js

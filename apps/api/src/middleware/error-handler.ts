@@ -1,5 +1,6 @@
 import type { Context } from "hono";
 import { AppError } from "../lib/errors.js";
+import { captureException } from "../lib/observability.js";
 import type { ApiResponse } from "@repo/shared";
 
 /**
@@ -35,6 +36,10 @@ export function errorHandler(err: Error, c: Context) {
 
   // Unexpected error — log full details server-side, return generic message
   console.error("[Unhandled Error]", err);
+  captureException(err, {
+    path: c.req.path,
+    method: c.req.method,
+  });
   const body: ApiResponse = {
     success: false,
     error: {
